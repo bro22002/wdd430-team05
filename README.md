@@ -5,3 +5,6 @@
 - Mauro Nicolas Villalba
 - Joseph Zereuwa Anucha
 - Aaron-otobong Uwem Edem
+- Harvey Sagario
+- Emmanuel Chukwunonso Okoye
+- Tinashe Allan Katenaire

@@ -10,7 +10,8 @@ export const mockProducts: Product[] = [
     title: 'Handcrafted Ceramic Bowl Set',
     description: 'Beautiful handmade ceramic bowls perfect for everyday dining',
     images: [
-      '/images/ceramic-bowl.jpg'
+      '/images/Hand-woven Wool Scarf.png'
+
     ],
     artist: {
       id: 'artist-1',
@@ -39,7 +40,8 @@ export const mockProducts: Product[] = [
     title: 'Artisan Silver Necklace',
     description: 'Unique handcrafted silver necklace with traditional patterns',
     images: [
-      '/images/silver-necklace.jpg'
+      '/images/Blown Glass Vase.png'
+
     ],
     artist: {
       id: 'artist-2',
@@ -67,7 +69,7 @@ export const mockProducts: Product[] = [
     title: 'Blown Glass Vase',
     description: 'Elegant hand-blown glass vase with unique color patterns',
     images: [
-      '/images/ceramic-bowl.jpg'
+      '/images/Blown Glass Vase.png'
     ],
     artist: {
       id: 'artist-3',
@@ -96,7 +98,7 @@ export const mockProducts: Product[] = [
     title: 'Hand-woven Wool Scarf',
     description: 'Soft merino wool scarf with traditional weaving patterns',
     images: [
-      '/images/silver-necklace.jpg'
+      '/images/Hand-woven Wool Scarf.png'
     ],
     artist: {
       id: 'artist-4',

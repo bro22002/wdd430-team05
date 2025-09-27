@@ -1,40 +1,289 @@
 /* Tailwind directives */
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap');
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+
 /* @tailwind base;
 @tailwind components;
 @tailwind utilities; */
 /* Custom variables */
+/* Importar las fuentes de Google Fonts */
+
+/* Variables CSS para el sistema de colores de Handcrafted Haven */
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  /* Colores principales del brand */
+  --color-primary: #8b4513;        /* Saddle Brown - Color principal */
+  --color-secondary: #d2691e;      /* Chocolate - Color secundario */
+  --color-accent: #deb887;         /* Burlywood - Color de acento */
+  --color-background: #f8f6f3;     /* Floral White - Fondo principal */
+  --color-dark: #2c3e50;          /* Dark Blue Gray - Texto principal */
+  --color-muted: #5d6d7e;         /* Slate Gray - Texto secundario */
+  
+  /* Colores funcionales */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  
+  /* Colores con opacidad para efectos */
+  --color-primary-light: rgba(139, 69, 19, 0.1);
+  --color-primary-medium: rgba(139, 69, 19, 0.5);
+  --color-secondary-light: rgba(210, 105, 30, 0.1);
+  --color-accent-light: rgba(222, 184, 135, 0.3);
+  
+  /* Tipografía */
+    --font-heading: 'Playfair Display', serif;    /* Para headings principales */
+    --font-body: 'Inter', sans-serif;             /* Para todo el texto del cuerpo */
+    --font-italic: 'Inter', sans-serif;           /* Para énfasis y citas */
+  
+  /* Tamaños de fuente según la jerarquía definida */
+  --text-xs: 0.75rem;      /* 12px - Texto muy pequeño */
+  --text-sm: 0.875rem;     /* 14px - Texto pequeño */
+  --text-base: 1rem;       /* 16px - Texto del cuerpo */
+  --text-lg: 1.125rem;     /* 18px - Texto grande */
+  --text-xl: 1.25rem;      /* 20px - Texto extra grande */
+  --text-2xl: 1.5rem;      /* 24px - Section Titles */
+  --text-3xl: 2rem;        /* 32px - Secondary Headings */
+  --text-4xl: 2.5rem;      /* 40px - Primary Headings */
+  
+  /* Pesos de fuente */
+  --font-normal: 400;      /* Inter Regular */
+  --font-medium: 500;      /* Inter Medium */
+  --font-semibold: 600;    /* Inter Semibold */
+  --font-bold: 700;        /* Playfair Display Bold */
+  
+  /* Espaciado consistente */
+  --spacing-xs: 0.25rem;   /* 4px */
+  --spacing-sm: 0.5rem;    /* 8px */
+  --spacing-md: 1rem;      /* 16px */
+  --spacing-lg: 1.5rem;    /* 24px */
+  --spacing-xl: 2rem;      /* 32px */
+  --spacing-2xl: 3rem;     /* 48px */
+  --spacing-3xl: 4rem;     /* 64px */
+  
+  /* Bordes redondeados */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  /* Sombras para elementos */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
-/* Base styles */
-body {
-  background: white;
-  color: rgb(var(--foreground-rgb));
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
+/* Reset básico para consistencia entre navegadores */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-  padding: 0;
   margin: 0;
+  padding: 0;
 }
 
+/* Configuración del HTML y BODY */
+html {
+  line-height: 1.6;                    /* Altura de línea cómoda para lectura */
+  font-size: 16px;                     /* Tamaño base de 16px */
+  scroll-behavior: smooth;              /* Desplazamiento suave */
+}
+
+body {
+  font-family: var(--font-body);       /* Inter como fuente principal */
+  font-weight: var(--font-normal);     /* Peso normal (400) */
+  color: var(--color-dark);            /* Color de texto principal */
+  background-color: var(--color-background); /* Fondo principal */
+  line-height: 1.6;                    /* Altura de línea consistente */
+  -webkit-font-smoothing: antialiased; /* Suavizado de fuentes en WebKit */
+  -moz-osx-font-smoothing: grayscale;  /* Suavizado de fuentes en Firefox */
+  overflow-x: hidden;                  /* Evita scroll horizontal */
+}
+
+/* Clases utilitarias para tipografía */
+.heading-primary {
+  font-family: var(--font-heading), serif;
+  font-weight: var(--font-bold);
+  font-size: var(--text-4xl);
+  line-height: 1.2;
+  color: var(--color-primary);
+}
+
+.heading-secondary {
+  font-family: var(--font-body), sans-serif;
+  font-weight: var(--font-semibold);
+  font-size: var(--text-3xl);
+  line-height: 1.3;
+  color: var(--color-dark);
+}
+
+.heading-section {
+  font-family: var(--font-body), sans-serif;
+  font-weight: var(--font-medium);
+  font-size: var(--text-2xl);
+  line-height: 1.4;
+  color: var(--color-dark);
+}
+
+.text-body {
+  font-family: var(--font-body), sans-serif;
+  font-weight: var(--font-normal);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--color-dark);
+}
+
+.text-small {
+  font-family: var(--font-body), sans-serif;
+  font-weight: var(--font-normal);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+
+.text-emphasis {
+  font-family: var(--font-body), sans-serif;
+  font-weight: var(--font-semibold);
+  color: var(--color-primary);
+}
+
+.text-italic {
+  font-family: var(--font-italic), sans-serif;
+  font-style: italic;
+  color: var(--color-muted);
+}
+
+/* Clases utilitarias para colores */
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-secondary {
+  color: var(--color-secondary);
+}
+
+.text-muted {
+  color: var(--color-muted);
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+.bg-secondary {
+  background-color: var(--color-secondary);
+}
+
+.bg-accent {
+  background-color: var(--color-accent);
+}
+
+.bg-light {
+  background-color: var(--color-background);
+}
+
+/* Enlaces básicos */
 a {
   color: inherit;
   text-decoration: none;
+  transition: color 0.2s ease;         /* Transición suave para hover */
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+a:hover {
+  color: var(--color-secondary);       /* Color hover consistente */
+}
+
+/* Botones básicos reutilizables */
+.btn {
+  display: inline-flex;                /* Flex para alineación */
+  align-items: center;                 /* Centrar contenido verticalmente */
+  justify-content: center;             /* Centrar contenido horizontalmente */
+  padding: var(--spacing-sm) var(--spacing-md); /* Padding consistente */
+  border: 2px solid transparent;       /* Borde para variaciones */
+  border-radius: var(--radius-md);     /* Bordes redondeados */
+  font-family: var(--font-body);       /* Inter */
+  font-weight: var(--font-medium);     /* 500 */
+  font-size: var(--text-base);         /* Tamaño base */
+  cursor: pointer;                     /* Cursor de pointer */
+  transition: all 0.2s ease;           /* Transiciones suaves */
+  text-decoration: none;               /* Sin decoración para enlaces */
+}
+
+.btn-primary {
+  background-color: var(--color-primary);  /* Fondo principal */
+  color: var(--color-white);              /* Texto blanco */
+  border-color: var(--color-primary);     /* Borde del mismo color */
+}
+
+.btn-primary:hover {
+  background-color: var(--color-secondary); /* Hover más claro */
+  border-color: var(--color-secondary);
+  color: var(--color-white);
+}
+
+.btn-secondary {
+  background-color: transparent;           /* Fondo transparente */
+  color: var(--color-primary);             /* Texto del color principal */
+  border-color: var(--color-primary);      /* Borde del color principal */
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-primary);  /* Fondo en hover */
+  color: var(--color-white);               /* Texto blanco en hover */
+}
+
+/* Contenedores básicos */
+.container {
+  max-width: 1200px;                  /* Ancho máximo */
+  margin: 0 auto;                     /* Centrado horizontal */
+  padding: 0 var(--spacing-md);       /* Padding horizontal */
+}
+
+.container-full {
+  width: 100%;
+  padding: 0 var(--spacing-md);
+}
+
+/* Utilidades para responsive design */
+@media (max-width: 768px) {
+  .heading-primary {
+    font-size: var(--text-3xl);       /* Reducir tamaño en móviles */
   }
+  
+  .heading-secondary {
+    font-size: var(--text-2xl);       /* Reducir tamaño en móviles */
+  }
+  
+  .container {
+    padding: 0 var(--spacing-sm);     /* Menos padding en móviles */
+  }
+}
+
+/* Utilidades de espaciado */
+.mt-xs { margin-top: var(--spacing-xs); }
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+.mt-xl { margin-top: var(--spacing-xl); }
+
+.mb-xs { margin-bottom: var(--spacing-xs); }
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+.mb-xl { margin-bottom: var(--spacing-xl); }
+
+.p-xs { padding: var(--spacing-xs); }
+.p-sm { padding: var(--spacing-sm); }
+.p-md { padding: var(--spacing-md); }
+.p-lg { padding: var(--spacing-lg); }
+.p-xl { padding: var(--spacing-xl); }
+
+.productCard {
+  background-color: var(--color-background);
+  color: var(--color-dark);
+  border-color: var(--color-primary);
 }

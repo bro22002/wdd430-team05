@@ -1,220 +1,244 @@
-// components/product/ProductCard.tsx
-// Componente principal para mostrar productos artesanales
+import React from 'react';
 
-'use client';
-import React, { useState } from 'react';
-import Image from 'next/image';
-import { Card, CardContent } from '../ui/Card';
-import Rating from '../ui/Rating';
-import { DiscountBadge, CategoryBadge } from '../ui/Badge';
-import { Product } from '../../types/product';
-import { formatPrice, calculateDiscountPercentage } from '../../utils/formatPrice';
-
-interface ProductCardProps {
-  product: Product;
-  onFavoriteToggle?: (productId: string, isFavorite: boolean) => void;
-  onProductClick?: (product: Product) => void;
-  className?: string;
-}
-
-/**
- * Componente ProductCard - Muestra información de un producto artesanal
- * @param product - Datos del producto
- * @param onFavoriteToggle - Función para manejar favoritos
- * @param onProductClick - Función al hacer click en el producto
- * @param className - Clases CSS adicionales
- */
-export default function ProductCard({
-  product,
-  onFavoriteToggle,
-  onProductClick,
-  className = ''
-}: ProductCardProps) {
-  
-  // Estado local para manejar favoritos
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [isImageLoading, setIsImageLoading] = useState(true);
-  
-  // Calcular descuento si existe precio original
-  const discountPercentage = product.price.original 
-    ? calculateDiscountPercentage(product.price.original, product.price.current)
-    : 0;
-  
-  /**
-   * Maneja el toggle de favoritos
-   */
-  const handleFavoriteClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Evitar que se active el click del producto
-    const newFavoriteState = !isFavorite;
-    setIsFavorite(newFavoriteState);
-    
-    // Ejecutar callback si existe
-    onFavoriteToggle?.(product.id, newFavoriteState);
+const ProductCard = ({ product, viewMode = 'grid' }) => {
+  // handleAddToCart: Función para agregar producto al carrito
+  const handleAddToCart = () => {
+    console.log('Agregando al carrito:', product.title);
+    // Aquí iría la lógica real de agregar al carrito
   };
-  
-  /**
-   * Maneja el click en el producto
-   */
-  const handleProductClick = () => {
-    onProductClick?.(product);
+
+  // formatPrice: Formatea el precio con símbolo de moneda
+  const formatPrice = (price) => {
+    return `$${price.toFixed(2)}`;
   };
-  
+
+  // formatDate: Formatea la fecha de creación
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
+  // renderRating: Renderiza las estrellas basado en el rating numérico
+  const renderRating = (rating) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<span key={i} className="star full">★</span>);
+    }
+
+    if (hasHalfStar) {
+      stars.push(<span key="half" className="star half">☆</span>);
+    }
+
+    const emptyStars = 5 - Math.ceil(rating);
+    for (let i = 0; i < emptyStars; i++) {
+      stars.push(<span key={`empty-${i}`} className="star empty">☆</span>);
+    }
+
+    return stars;
+  };
+
+  // getStockStatus: Determina el estado del stock
+  const getStockStatus = (stock) => {
+    if (stock === 0) return { text: 'Out of Stock', className: 'out-of-stock' };
+    if (stock <= 5) return { text: `Only ${stock} left`, className: 'low-stock' };
+    return { text: 'In Stock', className: 'in-stock' };
+  };
+
+  const stockStatus = getStockStatus(product.stock);
+
   return (
-    <Card
-      className={`max-w-sm mx-auto overflow-hidden ${className}`}
-      hover={true}
-      clickable={!!onProductClick}
-      onClick={handleProductClick}
-    >
-      {/* Contenedor de imagen */}
-      <div className="relative">
-        {/* Imagen principal del producto */}
-        <div className="relative h-64 w-full bg-gray-100">
-          <Image
-            src={product.images[0]}
-            alt={product.title}
-            fill
-            priority
-            className={`object-cover transition-opacity duration-300 ${
-              isImageLoading ? 'opacity-0' : 'opacity-100'
-            }`}
-            onLoad={() => setIsImageLoading(false)}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            quality={85}
-          />
-          
-          {/* Skeleton loader mientras carga la imagen */}
-          {isImageLoading && (
-            <div className="absolute inset-0 bg-gray-200 animate-pulse" />
-          )}
-        </div>
-        
-        {/* Badge de descuento (esquina superior izquierda) */}
-        {discountPercentage > 0 && (
-          <div className="absolute top-3 left-3">
-            <DiscountBadge percentage={discountPercentage} />
-          </div>
-        )}
-        
-        {/* Badge de destacado */}
-        {product.featured && (
-          <div className="absolute top-3 right-12">
-            <span className="bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-medium">
-              Featured
-            </span>
-          </div>
-        )}
-        
-        {/* Botón de favoritos (esquina superior derecha) */}
-        <button
-          onClick={handleFavoriteClick}
-          className="absolute top-3 right-3 p-2 rounded-full bg-white/80 backdrop-blur-sm 
-                     hover:bg-white transition-all duration-200 group"
-          aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-        >
-          <svg
-            className={`w-4 h-4 transition-colors duration-200 ${
-              isFavorite 
-                ? 'text-red-500 fill-current' 
-                : 'text-gray-600 group-hover:text-red-500'
-            }`}
-            fill={isFavorite ? 'currentColor' : 'none'}
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-            />
-          </svg>
-        </button>
-      </div>
-      
-      {/* Contenido del producto */}
-      <CardContent className="p-4">
-        {/* Información del artista */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="relative w-6 h-6">
-            <Image
-              src={product.artist.avatar || '/placeholder-avatar.png'}
-              alt={product.artist.name}
-              fill
-              className="rounded-full object-cover"
-              sizes="24px"
-            />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">
-              {product.artist.name}
-            </p>
-            <p className="text-xs text-gray-500 truncate">
-              {product.artist.location}
-            </p>
-          </div>
-        </div>
-        
-        {/* Título del producto */}
-        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-          {product.title}
-        </h3>
-        
-        {/* Rating */}
-        <div className="mb-3">
-          <Rating
-            rating={product.rating.average}
-            reviewCount={product.rating.count}
-            size="small"
-          />
-        </div>
-        
-        {/* Precios */}
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg font-bold text-gray-900">
-            {formatPrice(product.price.current, { currency: product.price.currency })}
-          </span>
-          
-          {/* Precio original si hay descuento */}
-          {product.price.original && (
-            <span className="text-sm text-gray-500 line-through">
-              {formatPrice(product.price.original, { currency: product.price.currency })}
-            </span>
-          )}
-        </div>
-        
-        {/* Categoría */}
-        <CategoryBadge 
-          category={product.category}
-          className="mb-2"
+    <div className={`productCard ${viewMode}`}>
+      <div className="product-image">
+        <img 
+          src={product.image_url} 
+          alt={product.title}
+          onError={(e) => {
+            e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgMTEwQzEzOS4yIDExMCAxMzAuNSAxMTguNyAxMzAuNSAxMjkuNVMxMzkuMiAxNDkgMTUwIDE0OUMxNjAuOCAxNDkgMTY5LjUgMTQwLjMgMTY5LjUgMTI5LjVTMTYwLjggMTEwIDE1MCAxMTBaIiBmaWxsPSIjOUNBM0FGIi8+CjxwYXRoIGQ9Ik0xODAuNSAxODBIODkuNUw5OS41IDE1MEwxNzAuNSAxNTBMMTgwLjUgMTgwWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K';
+          }}
         />
         
-        {/* Estado de stock */}
-        <div className="flex items-center justify-between mt-3">
-          <span className={`text-sm font-medium ${
-            product.inStock 
-              ? 'text-green-600' 
-              : 'text-red-600'
-          }`}>
-            {product.inStock ? 'In Stock' : 'Out of Stock'}
-          </span>
-          
-          {/* Botón de acción rápida */}
+        {/* Badge de stock usando tus estilos */}
+        <div className={`stock-badge ${stockStatus.className}`}>
+          {stockStatus.text}
+        </div>
+      </div>
+      
+      <div className="product-info">
+        {/* Título del producto usando campo real */}
+        <h3 className="heading-section">{product.title}</h3>
+        
+        {/* Categoría */}
+        <p className="text-small text-secondary">{product.category}</p>
+        
+        {/* Descripción (solo en vista lista) */}
+        {viewMode === 'list' && (
+          <p className="text-body mt-sm">{product.description}</p>
+        )}
+        
+        {/* Rating usando campo real */}
+        <div className="product-rating mt-sm">
+          <div className="stars">
+            {renderRating(product.rating)}
+          </div>
+          <span className="rating-number text-muted">({product.rating})</span>
+        </div>
+        
+        {/* Fecha de creación */}
+        <p className="text-small text-muted mt-xs">Added: {formatDate(product.created_at)}</p>
+        
+        {/* Footer con precio y botón */}
+        <div className="product-footer mt-md">
+          <span className="text-emphasis">{formatPrice(product.price)}</span>
           <button 
-            className="px-3 py-1 text-sm font-medium text-blue-600 
-                       hover:text-blue-700 hover:bg-blue-50 
-                       rounded-md transition-colors duration-200"
-            onClick={(e) => {
-              e.stopPropagation();
-              // Aquí iría la lógica para agregar al carrito o ver detalles
-              console.log('Quick action for product:', product.id);
-            }}
+            onClick={handleAddToCart}
+            className="btn btn-primary"
+            disabled={product.stock === 0}
           >
-            Quick View
+            {product.stock === 0 ? 'Sold Out' : 'Add to Cart'}
           </button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      <style jsx>{`
+        .productCard {
+          background: var(--color-white);
+          border-radius: var(--radius-lg);
+          overflow: hidden;
+          box-shadow: var(--shadow-md);
+          transition: all 0.3s ease;
+          cursor: pointer;
+          position: relative;
+          border: 1px solid var(--color-accent-light);
+        }
+
+        .productCard:hover {
+          transform: translateY(-4px);
+          box-shadow: var(--shadow-xl);
+        }
+
+        .productCard.list {
+          display: flex;
+          flex-direction: row;
+        }
+
+        .productCard.list .product-image {
+          width: 200px;
+          flex-shrink: 0;
+        }
+
+        .product-image {
+          width: 100%;
+          height: 250px;
+          overflow: hidden;
+          position: relative;
+        }
+
+        .product-image img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.3s ease;
+        }
+
+        .productCard:hover .product-image img {
+          transform: scale(1.05);
+        }
+
+        .stock-badge {
+          position: absolute;
+          top: var(--spacing-sm);
+          right: var(--spacing-sm);
+          padding: var(--spacing-xs) var(--spacing-sm);
+          border-radius: var(--radius-lg);
+          font-size: var(--text-xs);
+          font-weight: var(--font-semibold);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .stock-badge.in-stock {
+          background: var(--color-success);
+          color: var(--color-white);
+        }
+
+        .stock-badge.low-stock {
+          background: var(--color-warning);
+          color: var(--color-white);
+        }
+
+        .stock-badge.out-of-stock {
+          background: var(--color-error);
+          color: var(--color-white);
+        }
+
+        .product-info {
+          padding: var(--spacing-lg);
+          flex-grow: 1;
+        }
+
+        .product-rating {
+          display: flex;
+          align-items: center;
+          gap: var(--spacing-sm);
+        }
+
+        .stars {
+          display: flex;
+          gap: 2px;
+        }
+
+        .star {
+          font-size: var(--text-lg);
+        }
+
+        .star.full {
+          color: var(--color-warning);
+        }
+
+        .star.half {
+          color: var(--color-warning);
+        }
+
+        .star.empty {
+          color: var(--color-accent);
+        }
+
+        .rating-number {
+          font-weight: var(--font-medium);
+        }
+
+        .product-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: auto;
+        }
+
+        @media (max-width: 768px) {
+          .productCard.list {
+            flex-direction: column;
+          }
+
+          .productCard.list .product-image {
+            width: 100%;
+          }
+
+          .product-footer {
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            align-items: stretch;
+          }
+        }
+      `}</style>
+    </div>
   );
-}
+};
+
+export default ProductCard;

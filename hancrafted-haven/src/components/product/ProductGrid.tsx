@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import ProductCard from './ProductCard';
 import { Product } from '../../types/product';
-import { getProducts } from '../../data/mockProducts';
+import { getAllProducts, getProductsByCategory } from '../../utils/database';
 
 interface ProductGridProps {
   filters?: {
@@ -39,8 +39,12 @@ export default function ProductGrid({
         setLoading(true);
         setError(null);
         
-        // Simular llamada a API
-        const data = await getProducts(filters);
+        let data;
+        if (filters?.category) {
+          data = await getProductsByCategory(filters.category);
+        } else {
+          data = await getAllProducts();
+        }
         setProducts(data);
         
       } catch (err) {

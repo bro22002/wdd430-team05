@@ -1,23 +1,16 @@
 // utils/formatPrice.ts
 // Esta función formatea los precios según la moneda y región
 
-interface FormatPriceOptions {
-  currency?: string;
-  locale?: string;
-  showDecimals?: boolean;
-}
-
 /**
  * Formatea un precio numérico a una cadena con formato de moneda
  * @param price - El precio numérico a formatear
- * @param options - Opciones de formateo
- * @returns Precio formateado como string (ej: "$89.00", "€75.50")
+ * @returns Precio formateado como string (ej: "$89.00")
  */
-export function formatPrice(
-  price: number, 
-  options: FormatPriceOptions = {}
-): string {
-  const {
+export function formatPrice(price: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(price);
     currency = 'USD',
     locale = 'en-US',
     showDecimals = true

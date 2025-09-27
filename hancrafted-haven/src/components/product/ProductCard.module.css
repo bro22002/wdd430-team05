@@ -1,5 +1,13 @@
 /* components/product/ProductCard.module.css */
 /* Estilos específicos para el componente ProductCard */
+.productCard {
+  background-color: var(--color-background);
+  color: var(--color-accent);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-body), sans-serif;
+}
 
 /* Utility para truncar texto a múltiples líneas */
 .lineClamp2 {
@@ -187,9 +195,9 @@
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .productCard {
-    background-color: #1f2937;
-    border-color: #374151;
-    color: #f9fafb;
+    background-color: var(--color-background);
+    border-color: var(--color-muted);
+    color: var(--color-background);
   }
   
   .skeleton {

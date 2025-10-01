@@ -9,6 +9,8 @@ import AuthModal from './auth/AuthModal';
 import { LoadingSpinner, ErrorMessage } from './UtilityComponents';
 import { getCurrentUser, signOut } from '../services/authService';
 
+import AuthDebugPanel from './auth/AuthDebugPanel'; // Panel de depuración de autenticación
+
 const HomePage = () => {
   // useProducts: Hook personalizado para manejar productos
   const {

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ProductCard = ({ product, viewMode = 'grid' }) => {
+const ProductCard = ({product, viewMode = 'grid' }) => {
   // handleAddToCart: Función para agregar producto al carrito
   const handleAddToCart = () => {
     console.log('Agregando al carrito:', product.title);

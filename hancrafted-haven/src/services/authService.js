@@ -1,9 +1,19 @@
 // src/services/authService.js
-// Servicio para manejar todas las operaciones de autenticación con Supabase
+// Servicio CORREGIDO para manejar autenticación con user_profiles
 
 import { supabase } from '../lib/supabase';
 
-// signUp: Registra un nuevo usuario en Supabase Auth
+/**
+ * signUp: Registra un nuevo usuario en Supabase Auth
+ * CAMBIOS: Ahora usa user_profiles en lugar de profiles
+ * 
+ * @param {Object} userData - Datos del usuario
+ * @param {string} userData.firstName - Nombre del usuario
+ * @param {string} userData.lastName - Apellido del usuario
+ * @param {string} userData.email - Email del usuario
+ * @param {string} userData.password - Contraseña del usuario
+ * @returns {Object} - Resultado de la operación {success, user, session, message/error}
+ */
 export const signUp = async (userData) => {
   try {
     const { firstName, lastName, email, password } = userData;
@@ -14,9 +24,9 @@ export const signUp = async (userData) => {
       password: password,
       options: {
         data: {
-          first_name: firstName,
-          last_name: lastName,
-          full_name: `${firstName} ${lastName}`
+          full_name: `${firstName} ${lastName}`,  // ✅ Guardamos nombre completo
+          first_name: firstName,  // Lo guardamos en metadata por si acaso
+          last_name: lastName
         }
       }
     });
@@ -25,15 +35,17 @@ export const signUp = async (userData) => {
       throw authError;
     }
 
-    // Paso 2: Si el registro es exitoso, crear perfil en tabla profiles
+    // Paso 2: Si el registro es exitoso, crear perfil en user_profiles
     if (authData.user) {
       const { error: profileError } = await supabase
-        .from('profiles')
+        .from('user_profiles')  // ✅ CAMBIADO: era 'profiles'
         .insert({
           id: authData.user.id,
-          first_name: firstName,
-          last_name: lastName,
           email: email,
+          full_name: `${firstName} ${lastName}`,  // ✅ CAMBIADO: era first_name + last_name
+          role: 'buyer',  // ✅ NUEVO: rol por defecto es comprador
+          is_active: true,  // ✅ NUEVO: usuario activo por defecto
+          is_verified: false,  // ✅ NUEVO: no verificado inicialmente
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
@@ -41,6 +53,7 @@ export const signUp = async (userData) => {
       // Si hay error creando el perfil, lo logueamos pero no falseamos el registro
       if (profileError) {
         console.warn('Profile creation error:', profileError);
+        // NOTA: El usuario ya fue creado en Auth, solo falló el perfil extendido
       }
     }
 
@@ -72,12 +85,20 @@ export const signUp = async (userData) => {
   }
 };
 
-// signIn: Inicia sesión con email y contraseña
+/**
+ * signIn: Inicia sesión con email y contraseña
+ * CAMBIOS: Obtiene perfil de user_profiles y mapea campos correctamente
+ * 
+ * @param {Object} credentials - Credenciales del usuario
+ * @param {string} credentials.email - Email del usuario
+ * @param {string} credentials.password - Contraseña del usuario
+ * @returns {Object} - Resultado de la operación {success, user, session, profile, message/error}
+ */
 export const signIn = async (credentials) => {
   try {
     const { email, password } = credentials;
 
-    // Autenticar con Supabase Auth
+    // Paso 1: Autenticar con Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: email,
       password: password
@@ -87,17 +108,25 @@ export const signIn = async (credentials) => {
       throw authError;
     }
 
-    // Obtener información del perfil del usuario
+    // Paso 2: Obtener información del perfil del usuario
     let userProfile = null;
     if (authData.user) {
       const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
+        .from('user_profiles')  // ✅ CAMBIADO: era 'profiles'
         .select('*')
         .eq('id', authData.user.id)
         .single();
 
       if (!profileError && profileData) {
         userProfile = profileData;
+        
+        // ✅ NUEVO: Mapear campos para compatibilidad con código existente
+        // Esto permite que tu código actual siga funcionando sin cambios masivos
+        userProfile.first_name = profileData.full_name?.split(' ')[0] || '';
+        userProfile.last_name = profileData.full_name?.split(' ').slice(1).join(' ') || '';
+        userProfile.is_artisan = profileData.role === 'seller' || profileData.role === 'artisan';
+        userProfile.artisan_verified = profileData.is_verified;
+        userProfile.avatar_url = profileData.profile_image_url;
       }
     }
 
@@ -130,7 +159,12 @@ export const signIn = async (credentials) => {
   }
 };
 
-// signOut: Cierra la sesión del usuario
+/**
+ * signOut: Cierra la sesión del usuario
+ * SIN CAMBIOS: Esta función no interactúa con tablas de perfil
+ * 
+ * @returns {Object} - Resultado de la operación {success, message/error}
+ */
 export const signOut = async () => {
   try {
     const { error } = await supabase.auth.signOut();
@@ -153,10 +187,15 @@ export const signOut = async () => {
   }
 };
 
-// getCurrentUser: Obtiene el usuario actual de la sesión
+/**
+ * getCurrentUser: Obtiene el usuario actual de la sesión
+ * CAMBIOS: Lee de user_profiles y mapea campos para compatibilidad
+ * 
+ * @returns {Object} - {success, user, profile}
+ */
 export const getCurrentUser = async () => {
   try {
-    // Obtener usuario de la sesión actual
+    // Paso 1: Obtener usuario de la sesión actual
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
     if (userError || !user) {
@@ -167,17 +206,31 @@ export const getCurrentUser = async () => {
       };
     }
 
-    // Obtener perfil del usuario
+    // Paso 2: Obtener perfil del usuario de user_profiles
     const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
+      .from('user_profiles')  // ✅ CAMBIADO: era 'profiles'
       .select('*')
       .eq('id', user.id)
       .single();
 
+    // Paso 3: Mapear campos para compatibilidad con código existente
+    let mappedProfile = null;
+    if (!profileError && profileData) {
+      mappedProfile = {
+        ...profileData,
+        // Campos mapeados para retrocompatibilidad
+        first_name: profileData.full_name?.split(' ')[0] || '',
+        last_name: profileData.full_name?.split(' ').slice(1).join(' ') || '',
+        is_artisan: profileData.role === 'seller' || profileData.role === 'artisan',
+        artisan_verified: profileData.is_verified,
+        avatar_url: profileData.profile_image_url
+      };
+    }
+
     return {
       success: true,
       user: user,
-      profile: profileError ? null : profileData
+      profile: mappedProfile
     };
 
   } catch (error) {
@@ -190,7 +243,12 @@ export const getCurrentUser = async () => {
   }
 };
 
-// getSession: Obtiene la sesión actual
+/**
+ * getSession: Obtiene la sesión actual
+ * SIN CAMBIOS: No interactúa con tablas de perfil
+ * 
+ * @returns {Object} - {success, session}
+ */
 export const getSession = async () => {
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
@@ -213,12 +271,24 @@ export const getSession = async () => {
   }
 };
 
-// onAuthStateChange: Listener para cambios en el estado de autenticación
+/**
+ * onAuthStateChange: Listener para cambios en el estado de autenticación
+ * SIN CAMBIOS: Función de utilidad, no interactúa con tablas
+ * 
+ * @param {Function} callback - Función a ejecutar cuando cambia el estado
+ * @returns {Object} - Subscription object para cleanup
+ */
 export const onAuthStateChange = (callback) => {
   return supabase.auth.onAuthStateChange(callback);
 };
 
-// resetPassword: Envía email para resetear contraseña
+/**
+ * resetPassword: Envía email para resetear contraseña
+ * SIN CAMBIOS: Solo funcionalidad de Auth
+ * 
+ * @param {string} email - Email del usuario
+ * @returns {Object} - {success, message/error}
+ */
 export const resetPassword = async (email) => {
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -243,15 +313,64 @@ export const resetPassword = async (email) => {
   }
 };
 
-// updateProfile: Actualiza el perfil del usuario
+/**
+ * updateProfile: Actualiza el perfil del usuario
+ * REESCRITO COMPLETAMENTE: Ahora funcional con user_profiles
+ * 
+ * @param {string} userId - ID del usuario
+ * @param {Object} profileData - Datos a actualizar
+ * @returns {Object} - {success, profile, message/error}
+ */
 export const updateProfile = async (userId, profileData) => {
   try {
+    // Preparar datos para actualizar
+    const updateData = {
+      ...profileData,
+      updated_at: new Date().toISOString()
+    };
+
+    // Si se están actualizando first_name y last_name, crear full_name
+    if (profileData.first_name || profileData.last_name) {
+      // Obtener perfil actual para tener los valores existentes
+      const { data: currentProfile } = await supabase
+        .from('user_profiles')
+        .select('full_name')
+        .eq('id', userId)
+        .single();
+
+      const currentFirstName = currentProfile?.full_name?.split(' ')[0] || '';
+      const currentLastName = currentProfile?.full_name?.split(' ').slice(1).join(' ') || '';
+
+      const newFirstName = profileData.first_name || currentFirstName;
+      const newLastName = profileData.last_name || currentLastName;
+
+      updateData.full_name = `${newFirstName} ${newLastName}`.trim();
+      
+      // Remover first_name y last_name ya que no existen en user_profiles
+      delete updateData.first_name;
+      delete updateData.last_name;
+    }
+
+    // Mapear campos que tienen nombres diferentes
+    if (profileData.avatar_url) {
+      updateData.profile_image_url = profileData.avatar_url;
+      delete updateData.avatar_url;
+    }
+
+    if (profileData.is_artisan !== undefined) {
+      updateData.role = profileData.is_artisan ? 'seller' : 'buyer';
+      delete updateData.is_artisan;
+    }
+
+    if (profileData.artisan_verified !== undefined) {
+      updateData.is_verified = profileData.artisan_verified;
+      delete updateData.artisan_verified;
+    }
+
+    // Actualizar en la base de datos
     const { data, error } = await supabase
-      .from('profiles')
-      .update({
-        ...profileData,
-        updated_at: new Date().toISOString()
-      })
+      .from('user_profiles')  // ✅ CAMBIADO: era 'profiles'
+      .update(updateData)
       .eq('id', userId)
       .select()
       .single();
@@ -260,9 +379,19 @@ export const updateProfile = async (userId, profileData) => {
       throw error;
     }
 
+    // Mapear respuesta para compatibilidad
+    const mappedProfile = {
+      ...data,
+      first_name: data.full_name?.split(' ')[0] || '',
+      last_name: data.full_name?.split(' ').slice(1).join(' ') || '',
+      is_artisan: data.role === 'seller' || data.role === 'artisan',
+      artisan_verified: data.is_verified,
+      avatar_url: data.profile_image_url
+    };
+
     return {
       success: true,
-      profile: data,
+      profile: mappedProfile,
       message: 'Profile updated successfully!'
     };
 

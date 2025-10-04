@@ -8,7 +8,7 @@ import FilterBar from './FilterBar';
 import AuthModal from './auth/AuthModal';
 import { LoadingSpinner, ErrorMessage } from './UtilityComponents';
 import { getCurrentUser, signOut } from '../services/authService';
-
+import ProfileEditModal from './profile/ProfileEditModal';
 import AuthDebugPanel from './auth/AuthDebugPanel'; // Panel de depuración de autenticación
 
 const HomePage = () => {
@@ -126,6 +126,27 @@ const HomePage = () => {
     return 'User';
   };
 
+    // ✅ NUEVO: Estado para modal de edición de perfil
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  // ... resto del código ...
+
+  // ✅ NUEVO: Función para abrir modal de edición
+  const openProfileEditModal = () => {
+    setIsProfileModalOpen(true);
+  };
+
+  // ✅ NUEVO: Función para cerrar modal
+  const closeProfileEditModal = () => {
+    setIsProfileModalOpen(false);
+  };
+
+  // ✅ NUEVO: Callback cuando se actualiza el perfil
+  const handleProfileUpdated = (updatedProfile) => {
+    setProfile(updatedProfile);
+    console.log('Profile updated:', updatedProfile);
+  };
+
   // handleError: Si hay error, mostrar componente de error
   if (error) {
     return <ErrorMessage message={error} />;
@@ -149,6 +170,7 @@ const HomePage = () => {
           <div className="nav-auth">
             {user ? (
               // Usuario autenticado
+              // Usuario autenticado
               <div className="user-menu">
                 <div className="user-info">
                   <span className="welcome-text">
@@ -160,6 +182,15 @@ const HomePage = () => {
                     </span>
                   )}
                 </div>
+                
+                {/* ✅ NUEVO: Botón para editar perfil */}
+                <button 
+                  onClick={openProfileEditModal}
+                  className="btn btn-secondary btn-small"
+                >
+                  Edit Profile
+                </button>
+                
                 <button 
                   onClick={handleLogout}
                   className="btn btn-secondary btn-small"
@@ -270,6 +301,14 @@ const HomePage = () => {
         onClose={closeAuthModal}
         onAuthSuccess={handleAuthSuccess}
         initialMode={authMode}
+      />
+
+      {/* NUEVO: Modal de edición de perfil */}
+      <ProfileEditModal
+        isOpen={isProfileModalOpen}
+        onClose={closeProfileEditModal}
+        currentProfile={profile}
+        onProfileUpdated={handleProfileUpdated}
       />
 
       {/* Estilos CSS con styled-jsx */}

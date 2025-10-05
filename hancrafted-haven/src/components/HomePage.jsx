@@ -9,6 +9,7 @@ import AuthModal from './auth/AuthModal';
 import { LoadingSpinner, ErrorMessage } from './UtilityComponents';
 import { getCurrentUser, signOut } from '../services/authService';
 import ProfileEditModal from './profile/ProfileEditModal';
+import ArtisanApplicationModal from './profile/ArtisanApplicationModal';
 import AuthDebugPanel from './auth/AuthDebugPanel'; // Panel de depuración de autenticación
 
 const HomePage = () => {
@@ -129,10 +130,17 @@ const HomePage = () => {
     // ✅ NUEVO: Estado para modal de edición de perfil
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
+  const [isArtisanModalOpen, setIsArtisanModalOpen] = useState(false);
+
   // ... resto del código ...
 
   // ✅ NUEVO: Función para abrir modal de edición
   const openProfileEditModal = () => {
+    if (!profile) {
+    console.warn('⚠️ Cannot open profile modal: profile not loaded');
+    alert('Please wait while your profile loads...');
+    return;
+  }
     setIsProfileModalOpen(true);
   };
 
@@ -147,6 +155,31 @@ const HomePage = () => {
     console.log('Profile updated:', updatedProfile);
   };
 
+  // Funciones para ArtisanApplicationModal
+const openArtisanModal = () => {
+  if (!profile) {
+    console.warn('⚠️ Cannot open artisan modal: profile not loaded');
+    alert('Please wait while your profile loads...');
+    return;
+  }
+  
+  // Verificar que el usuario NO sea ya artesano
+  if (profile.is_artisan) {
+    alert('You are already an artisan!');
+    return;
+  }
+  
+  setIsArtisanModalOpen(true);
+};
+
+const closeArtisanModal = () => {
+  setIsArtisanModalOpen(false);
+};
+
+const handleArtisanSuccess = (updatedProfile) => {
+  setProfile(updatedProfile);
+  console.log('✅ Artisan application successful:', updatedProfile);
+};
   // handleError: Si hay error, mostrar componente de error
   if (error) {
     return <ErrorMessage message={error} />;
@@ -183,13 +216,22 @@ const HomePage = () => {
                   )}
                 </div>
                 
-                {/* ✅ NUEVO: Botón para editar perfil */}
                 <button 
                   onClick={openProfileEditModal}
                   className="btn btn-secondary btn-small"
                 >
                   Edit Profile
                 </button>
+                
+                {/* Botón para convertirse en artesano (solo si NO es artesano) */}
+                {!profile?.is_artisan && (
+                  <button 
+                    onClick={openArtisanModal}
+                    className="btn btn-primary btn-small"
+                  >
+                    Become an Artisan
+                  </button>
+                )}
                 
                 <button 
                   onClick={handleLogout}
@@ -301,6 +343,12 @@ const HomePage = () => {
         onClose={closeAuthModal}
         onAuthSuccess={handleAuthSuccess}
         initialMode={authMode}
+      />
+      <ArtisanApplicationModal
+        isOpen={isArtisanModalOpen}
+        onClose={closeArtisanModal}
+        currentUser={user}
+        onSuccess={handleArtisanSuccess}
       />
 
       {/* NUEVO: Modal de edición de perfil */}

@@ -1,5 +1,5 @@
 // src/components/HomePage.jsx
-// HomePage actualizada con autenticación real de Supabase
+// HomePage con Dashboard de Artesano integrado
 
 import React, { useState, useEffect } from 'react';
 import { useProducts } from '../hooks/useProducts';
@@ -10,39 +10,54 @@ import { LoadingSpinner, ErrorMessage } from './UtilityComponents';
 import { getCurrentUser, signOut } from '../services/authService';
 import ProfileEditModal from './profile/ProfileEditModal';
 import ArtisanApplicationModal from './profile/ArtisanApplicationModal';
-import AuthDebugPanel from './auth/AuthDebugPanel'; // Panel de depuración de autenticación
+import ArtisanDashboard from './artisan/ArtisanDashboard'; // ✅ Dashboard de artesano
 
 const HomePage = () => {
-  // useProducts: Hook personalizado para manejar productos
+  // ============================================
+  // 1. HOOKS Y ESTADOS
+  // ============================================
+  
+  // Hook de productos
   const {
-    products,      // Array de productos filtrados
-    categories,    // Lista de categorías disponibles  
-    loading,       // Estado booleano de carga
-    error,         // Mensaje de error si existe
-    filters,       // Objeto con filtros activos
-    stats,         // Estadísticas calculadas
-    updateFilter,  // Función para actualizar filtros
-    clearFilters   // Función para limpiar filtros
+    products,
+    categories,
+    loading,
+    error,
+    filters,
+    stats,
+    updateFilter,
+    clearFilters
   } = useProducts();
 
-  // useState: Estado local para el modo de vista (grid/list)
+  // Estados de UI
   const [viewMode, setViewMode] = useState('grid');
-
-  // useState: Estados para manejar el modal de autenticación
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState('login'); // 'login' o 'register'
-
-  // useState: Estado de usuario autenticado con Supabase
+  
+  // Estados de autenticación
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  
+  // Estados de modales
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isArtisanModalOpen, setIsArtisanModalOpen] = useState(false);
+  
+  // ✅ Estado para mostrar/ocultar dashboard de artesano
+  const [showDashboard, setShowDashboard] = useState(false);
 
-  // useEffect: Verificar usuario autenticado al cargar la aplicación
+  // ============================================
+  // 2. EFFECTS
+  // ============================================
+  
   useEffect(() => {
     checkAuthenticatedUser();
   }, []);
 
-  // checkAuthenticatedUser: Verifica si hay un usuario autenticado
+  // ============================================
+  // 3. FUNCIONES DE AUTENTICACIÓN
+  // ============================================
+  
   const checkAuthenticatedUser = async () => {
     try {
       setAuthLoading(true);
@@ -62,34 +77,12 @@ const HomePage = () => {
     }
   };
 
-  // openLoginModal: Abre el modal en modo login
-  const openLoginModal = () => {
-    setAuthMode('login');
-    setIsAuthModalOpen(true);
-  };
-
-  // openRegisterModal: Abre el modal en modo registro
-  const openRegisterModal = () => {
-    setAuthMode('register');
-    setIsAuthModalOpen(true);
-  };
-
-  // closeAuthModal: Cierra el modal de autenticación
-  const closeAuthModal = () => {
-    setIsAuthModalOpen(false);
-  };
-
-  // handleAuthSuccess: Maneja cuando login/registro es exitoso
   const handleAuthSuccess = (userData) => {
     setUser(userData);
     setProfile(userData.profile);
     console.log('Authentication successful:', userData);
-    
-    // Opcional: mostrar notificación de bienvenida
-    // showWelcomeNotification(userData.firstName);
   };
 
-  // handleLogout: Maneja el cierre de sesión real
   const handleLogout = async () => {
     try {
       setAuthLoading(true);
@@ -98,13 +91,10 @@ const HomePage = () => {
       if (result.success) {
         setUser(null);
         setProfile(null);
+        setShowDashboard(false); // ✅ Cerrar dashboard al hacer logout
         console.log('Logout successful');
-        
-        // Opcional: mostrar notificación de despedida
-        // showLogoutNotification();
       } else {
         console.error('Logout failed:', result.error);
-        // Opcional: mostrar error al usuario
       }
     } catch (error) {
       console.error('Logout error:', error);
@@ -113,83 +103,181 @@ const HomePage = () => {
     }
   };
 
-  // getUserDisplayName: Obtiene el nombre a mostrar del usuario
   const getUserDisplayName = () => {
-    if (profile?.first_name) {
-      return profile.first_name;
-    }
-    if (user?.user_metadata?.first_name) {
-      return user.user_metadata.first_name;
-    }
-    if (user?.email) {
-      return user.email.split('@')[0];
-    }
+    if (profile?.first_name) return profile.first_name;
+    if (user?.user_metadata?.first_name) return user.user_metadata.first_name;
+    if (user?.email) return user.email.split('@')[0];
     return 'User';
   };
 
-    // ✅ NUEVO: Estado para modal de edición de perfil
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  // ============================================
+  // 4. FUNCIONES DE MODALES
+  // ============================================
+  
+  const openLoginModal = () => {
+    setAuthMode('login');
+    setIsAuthModalOpen(true);
+  };
 
-  const [isArtisanModalOpen, setIsArtisanModalOpen] = useState(false);
+  const openRegisterModal = () => {
+    setAuthMode('register');
+    setIsAuthModalOpen(true);
+  };
 
-  // ... resto del código ...
+  const closeAuthModal = () => {
+    setIsAuthModalOpen(false);
+  };
 
-  // ✅ NUEVO: Función para abrir modal de edición
   const openProfileEditModal = () => {
     if (!profile) {
-    console.warn('⚠️ Cannot open profile modal: profile not loaded');
-    alert('Please wait while your profile loads...');
-    return;
-  }
+      alert('Please wait while your profile loads...');
+      return;
+    }
     setIsProfileModalOpen(true);
   };
 
-  // ✅ NUEVO: Función para cerrar modal
   const closeProfileEditModal = () => {
     setIsProfileModalOpen(false);
   };
 
-  // ✅ NUEVO: Callback cuando se actualiza el perfil
   const handleProfileUpdated = (updatedProfile) => {
     setProfile(updatedProfile);
     console.log('Profile updated:', updatedProfile);
   };
 
-  // Funciones para ArtisanApplicationModal
-const openArtisanModal = () => {
-  if (!profile) {
-    console.warn('⚠️ Cannot open artisan modal: profile not loaded');
-    alert('Please wait while your profile loads...');
-    return;
-  }
-  
-  // Verificar que el usuario NO sea ya artesano
-  if (profile.is_artisan) {
-    alert('You are already an artisan!');
-    return;
-  }
-  
-  setIsArtisanModalOpen(true);
-};
+  const openArtisanModal = () => {
+    if (!profile) {
+      alert('Please wait while your profile loads...');
+      return;
+    }
+    if (profile.is_artisan) {
+      alert('You are already an artisan!');
+      return;
+    }
+    setIsArtisanModalOpen(true);
+  };
 
-const closeArtisanModal = () => {
-  setIsArtisanModalOpen(false);
-};
+  const closeArtisanModal = () => {
+    setIsArtisanModalOpen(false);
+  };
 
-const handleArtisanSuccess = (updatedProfile) => {
-  setProfile(updatedProfile);
-  console.log('✅ Artisan application successful:', updatedProfile);
-};
-  // handleError: Si hay error, mostrar componente de error
+  const handleArtisanSuccess = (updatedProfile) => {
+    setProfile(updatedProfile);
+    console.log('✅ Artisan application successful:', updatedProfile);
+  };
+
+  // ============================================
+  // 5. FUNCIONES DE DASHBOARD DE ARTESANO
+  // ============================================
+  
+  // ✅ Abrir dashboard de artesano
+  const openArtisanDashboard = () => {
+    if (!profile?.is_artisan) {
+      alert('Only artisans can access the product dashboard');
+      return;
+    }
+    setShowDashboard(true);
+    console.log('Opening artisan dashboard');
+  };
+
+  // ✅ Cerrar dashboard y volver a la vista principal
+  const closeDashboard = () => {
+    setShowDashboard(false);
+    console.log('Closing artisan dashboard');
+  };
+
+  // ============================================
+  // 6. RENDERIZADO CONDICIONAL
+  // ============================================
+  
+  // Mostrar error si hay
   if (error) {
     return <ErrorMessage message={error} />;
   }
 
-  // Mostrar loading inicial mientras verifica autenticación
+  // Mostrar loading inicial
   if (authLoading) {
     return <LoadingSpinner message="Loading application..." />;
   }
 
+  // ✅ IMPORTANTE: Si el dashboard está activo, mostrar solo el dashboard
+  if (showDashboard && user && profile?.is_artisan) {
+    return (
+      <div className="dashboard-wrapper">
+        {/* Header del Dashboard con botón de regreso */}
+        <div className="dashboard-nav">
+          <button 
+            onClick={closeDashboard}
+            className="btn btn-secondary"
+          >
+            ← Back to Shop
+          </button>
+          
+          <div className="nav-user">
+            <span className="welcome-text">
+              {getUserDisplayName()}
+            </span>
+            <button 
+              onClick={handleLogout}
+              className="btn btn-secondary btn-small"
+              disabled={authLoading}
+            >
+              {authLoading ? 'Logging out...' : 'Logout'}
+            </button>
+          </div>
+        </div>
+
+        {/* Dashboard del Artesano */}
+        <ArtisanDashboard 
+          currentUser={user}
+          profile={profile}
+        />
+
+        {/* Estilos para el dashboard wrapper */}
+        <style jsx>{`
+          .dashboard-wrapper {
+            min-height: 100vh;
+            background: var(--color-background);
+          }
+
+          .dashboard-nav {
+            background: var(--color-white);
+            padding: var(--spacing-md) var(--spacing-xl);
+            box-shadow: var(--shadow-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+          }
+
+          .nav-user {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+          }
+
+          .welcome-text {
+            font-weight: var(--font-medium);
+            color: var(--color-dark);
+          }
+
+          @media (max-width: 768px) {
+            .dashboard-nav {
+              flex-direction: column;
+              gap: var(--spacing-sm);
+            }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // ============================================
+  // 7. VISTA PRINCIPAL (HOMEPAGE)
+  // ============================================
+  
   return (
     <div className="homepage">
       {/* Header de la página con navegación */}
@@ -202,7 +290,6 @@ const handleArtisanSuccess = (updatedProfile) => {
           {/* Navegación de autenticación */}
           <div className="nav-auth">
             {user ? (
-              // Usuario autenticado
               // Usuario autenticado
               <div className="user-menu">
                 <div className="user-info">
@@ -279,11 +366,12 @@ const handleArtisanSuccess = (updatedProfile) => {
             </div>
           )}
 
+          {/* ✅ Botón para abrir dashboard de artesano */}
           {user && profile?.is_artisan && (
             <div className="hero-cta">
               <button 
                 className="btn btn-primary btn-large"
-                onClick={() => console.log('Navigate to artisan dashboard')}
+                onClick={openArtisanDashboard}
               >
                 Manage Your Products
               </button>
@@ -324,19 +412,20 @@ const handleArtisanSuccess = (updatedProfile) => {
           {/* Contenido de productos - Renderizado condicional */}
           <section className="products-section">
             {loading ? (
-              // LoadingSpinner: Se muestra cuando loading es true
               <LoadingSpinner />
             ) : products.length === 0 ? (
-              // NoProductsMessage: Se muestra cuando no hay productos
               <NoProductsMessage filters={filters} onClearFilters={clearFilters} />
             ) : (
-              // ProductGrid: Se muestra cuando hay productos
               <ProductGrid products={products} viewMode={viewMode} />
             )}
           </section>
         </div>
       </main>
 
+      {/* ============================================ */}
+      {/* 8. MODALES */}
+      {/* ============================================ */}
+      
       {/* Modal de Autenticación */}
       <AuthModal
         isOpen={isAuthModalOpen}
@@ -344,6 +433,8 @@ const handleArtisanSuccess = (updatedProfile) => {
         onAuthSuccess={handleAuthSuccess}
         initialMode={authMode}
       />
+      
+      {/* Modal de Aplicación de Artesano */}
       <ArtisanApplicationModal
         isOpen={isArtisanModalOpen}
         onClose={closeArtisanModal}
@@ -351,7 +442,7 @@ const handleArtisanSuccess = (updatedProfile) => {
         onSuccess={handleArtisanSuccess}
       />
 
-      {/* NUEVO: Modal de edición de perfil */}
+      {/* Modal de Edición de Perfil */}
       <ProfileEditModal
         isOpen={isProfileModalOpen}
         onClose={closeProfileEditModal}
@@ -359,7 +450,10 @@ const handleArtisanSuccess = (updatedProfile) => {
         onProfileUpdated={handleProfileUpdated}
       />
 
-      {/* Estilos CSS con styled-jsx */}
+      {/* ============================================ */}
+      {/* 9. ESTILOS */}
+      {/* ============================================ */}
+      
       <style jsx>{`
         .homepage {
           min-height: 100vh;
@@ -550,7 +644,10 @@ const handleArtisanSuccess = (updatedProfile) => {
   );
 };
 
-// NoProductsMessage: Componente para mostrar cuando no hay productos
+// ============================================
+// COMPONENTES AUXILIARES
+// ============================================
+
 const NoProductsMessage = ({ filters, onClearFilters }) => (
   <div className="no-products">
     <div className="no-products-content">
@@ -612,7 +709,6 @@ const NoProductsMessage = ({ filters, onClearFilters }) => (
   </div>
 );
 
-// ProductGrid: Componente para la cuadrícula de productos
 const ProductGrid = ({ products, viewMode }) => (
   <div className={`product-grid ${viewMode}`}>
     {products.map(product => (

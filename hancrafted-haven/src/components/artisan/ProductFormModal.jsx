@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { createProduct, updateProduct, getProductCategories } from '../../services/productService';
 import ProductImageUpload from './ProductImageUpload';
+import { supabase } from '../../lib/supabase';
 
 /**
  * ProductFormModal: Modal para crear o editar productos
@@ -202,76 +203,152 @@ const ProductFormModal = ({
    * 
    * @param {Event} e - Evento del formulario
    */
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // Validar antes de enviar
-    if (!validateForm()) {
-      return;
-    }
+  // Validar antes de enviar
+  if (!validateForm()) {
+    console.log('❌ Validación del formulario falló');
+    return;
+  }
 
-    try {
-      setLoading(true);
-      setMessage({ type: '', text: '' });
+  // ============================================
+  // 🔍 LOGGING EXTREMO PARA DIAGNÓSTICO
+  // ============================================
+  
+  console.log('====================================');
+  console.log('🚀 INICIANDO CREACIÓN DE PRODUCTO');
+  console.log('====================================');
+  
+  console.group('📋 1. DATOS DEL FORMULARIO');
+  console.log('Title:', formData.title);
+  console.log('Description:', formData.description?.substring(0, 50) + '...');
+  console.log('Price:', formData.price, typeof formData.price);
+  console.log('Category:', formData.category);
+  console.log('Stock:', formData.stock, typeof formData.stock);
+  console.log('Image URL:', formData.image_url || 'Sin imagen');
+  console.groupEnd();
 
-      let result;
+  console.group('👤 2. INFORMACIÓN DEL USUARIO');
+  console.log('Current User:', currentUser);
+  console.log('User ID:', currentUser?.id);
+  console.log('User Email:', currentUser?.email);
+  console.log('¿Existe currentUser?', !!currentUser);
+  console.log('¿Existe currentUser.id?', !!currentUser?.id);
+  console.groupEnd();
 
-      if (isEditing) {
-        // Modo edición: actualizar producto existente
-        console.log('✏️ Updating product:', existingProduct.id);
-        
-        result = await updateProduct(
-          existingProduct.id,
-          currentUser.id,
-          formData
-        );
-      } else {
-        // Modo nuevo: crear producto
-        console.log('➕ Creating new product');
-        
-        result = await createProduct(
-          currentUser.id,
-          formData
-        );
+  console.group('🔑 3. VERIFICACIÓN DE AUTENTICACIÓN');
+  // Verificar sesión actual
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  console.log('Session:', session);
+  console.log('Session Error:', sessionError);
+  console.log('Session User ID:', session?.user?.id);
+  console.log('¿Sesión existe?', !!session);
+  console.groupEnd();
+
+  console.group('📦 4. PREPARANDO DATOS PARA INSERCIÓN');
+  const dataToInsert = {
+    artisan_id: currentUser?.id,
+    title: formData.title.trim(),
+    description: formData.description.trim(),
+    price: parseFloat(formData.price),
+    category: formData.category.trim(),
+    stock: parseInt(formData.stock),
+    image_url: formData.image_url || null,
+    rating: 0,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+  console.log('Datos a insertar:', dataToInsert);
+  console.log('artisan_id:', dataToInsert.artisan_id);
+  console.log('¿artisan_id es válido?', !!dataToInsert.artisan_id);
+  console.groupEnd();
+
+  try {
+    setLoading(true);
+    setMessage({ type: '', text: '' });
+
+    console.log('⏳ Llamando a createProduct...');
+    console.log('Parámetros:', {
+      artisanId: currentUser.id,
+      productData: formData
+    });
+
+    // Llamar al servicio
+    const result = await createProduct(currentUser.id, formData);
+
+    console.group('📨 5. RESPUESTA DEL SERVICIO');
+    console.log('Resultado completo:', result);
+    console.log('Success:', result.success);
+    console.log('Error:', result.error);
+    console.log('Technical Error:', result.technicalError);
+    console.log('Error Code:', result.errorCode);
+    console.log('Product:', result.product);
+    console.groupEnd();
+
+    if (result.success) {
+      console.log('✅ ¡ÉXITO! Producto creado:', result.product);
+      
+      setMessage({
+        type: 'success',
+        text: result.message
+      });
+
+      // Notificar al componente padre
+      if (onProductSaved) {
+        console.log('📢 Notificando al componente padre...');
+        onProductSaved(result.product);
       }
 
-      // Verificar resultado
-      if (result.success) {
-        setMessage({
-          type: 'success',
-          text: result.message
-        });
+      // Cerrar modal después de 1.5 segundos
+      setTimeout(() => {
+        console.log('🚪 Cerrando modal...');
+        onClose();
+      }, 1500);
 
-        console.log('✅ Product saved:', result.product);
-
-        // Notificar al componente padre
-        if (onProductSaved) {
-          onProductSaved(result.product);
-        }
-
-        // Cerrar modal después de 1.5 segundos
-        setTimeout(() => {
-          onClose();
-        }, 1500);
-
-      } else {
-        setMessage({
-          type: 'error',
-          text: result.error
-        });
+    } else {
+      console.error('❌ ERROR AL CREAR PRODUCTO');
+      console.error('Mensaje de error:', result.error);
+      console.error('Error técnico:', result.technicalError);
+      console.error('Código de error:', result.errorCode);
+      
+      // Mostrar error detallado en alerta para el usuario
+      let alertMessage = `Error al crear producto:\n\n`;
+      alertMessage += `Mensaje: ${result.error}\n`;
+      if (result.errorCode) {
+        alertMessage += `Código: ${result.errorCode}\n`;
       }
-
-    } catch (error) {
-      console.error('❌ Submit error:', error);
+      if (result.technicalError) {
+        alertMessage += `\nDetalle técnico: ${result.technicalError}`;
+      }
+      
+      alert(alertMessage);
+      
       setMessage({
         type: 'error',
-        text: 'An unexpected error occurred. Please try again.'
+        text: result.error
       });
-    } finally {
-      setLoading(false);
     }
-  };
 
+  } catch (error) {
+    console.error('💥 ERROR INESPERADO EN handleSubmit');
+    console.error('Error:', error);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
+    alert(`Error inesperado: ${error.message}`);
+    
+    setMessage({
+      type: 'error',
+      text: 'An unexpected error occurred. Check console for details.'
+    });
+  } finally {
+    setLoading(false);
+    console.log('====================================');
+    console.log('🏁 FIN DEL PROCESO');
+    console.log('====================================');
+  }
+};
   /**
    * handleOverlayClick: Cierra el modal al hacer clic fuera
    * Solo si no está cargando

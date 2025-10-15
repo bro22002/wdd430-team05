@@ -605,4 +605,100 @@ export const verifyArtisan = async (userId) => {
       error: 'Failed to verify artisan. Please try again.'
     };
   }
+  
+};
+export const deleteSellerAccount = async (userId, confirmationText) => {
+  try {
+    console.log('⚠️ CRITICAL: Attempting to delete seller account:', userId);
+
+    if (confirmationText !== 'DELETE MY ACCOUNT') {
+      return {
+        success: false,
+        error: 'Confirmation text does not match. Account deletion cancelled.'
+      };
+    }
+
+    const { data: profile, error: fetchError } = await supabase
+      .from('user_profiles')
+      .select('profile_image_url, role')
+      .eq('id', userId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    if (profile.role !== 'seller' && profile.role !== 'artisan') {
+      return {
+        success: false,
+        error: 'This function is only for seller accounts.'
+      };
+    }
+
+    if (profile.profile_image_url) {
+      const urlParts = profile.profile_image_url.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      const filePath = `avatars/${fileName}`;
+
+      const { error: deleteImageError } = await supabase.storage
+        .from('profiles')
+        .remove([filePath]);
+
+      if (deleteImageError) {
+        console.warn('⚠️ Could not delete profile image:', deleteImageError);
+      }
+    }
+
+    const { data: products, error: productsError } = await supabase
+      .from('products')
+      .select('image_url')
+      .eq('artisan_id', userId);
+
+    if (!productsError && products?.length > 0) {
+      const productImagePaths = products
+        .filter(p => p.image_url)
+        .map(p => {
+          const fileName = p.image_url.split('/').pop();
+          return `products/${fileName}`;
+        });
+
+      if (productImagePaths.length > 0) {
+        const { error: deleteProductImagesError } = await supabase.storage
+          .from('products')
+          .remove(productImagePaths);
+
+        if (deleteProductImagesError) {
+          console.warn('⚠️ Could not delete some product images:', deleteProductImagesError);
+        }
+      }
+    }
+
+    const { error: deleteProfileError } = await supabase
+      .from('user_profiles')
+      .delete()
+      .eq('id', userId);
+
+    if (deleteProfileError) throw deleteProfileError;
+
+    await supabase.auth.signOut();
+
+    return {
+      success: true,
+      message: 'Your account has been permanently deleted. We\'re sorry to see you go.'
+    };
+
+  } catch (error) {
+    console.error('❌ Delete seller account error:', error);
+
+    let errorMessage = 'Failed to delete account. Please try again or contact support.';
+
+    if (error.message?.includes('foreign key')) {
+      errorMessage = 'Cannot delete account due to existing data dependencies. Please contact support.';
+    } else if (error.message?.includes('permission')) {
+      errorMessage = 'You do not have permission to delete this account.';
+    }
+
+    return {
+      success: false,
+      error: errorMessage
+    };
+  }
 };

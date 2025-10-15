@@ -6,7 +6,8 @@ import React, { useState, useEffect } from 'react';
 import { getArtisanProducts, deleteProduct } from '../../services/productService';
 import ProductFormModal from './ProductFormModal';
 import { LoadingSpinner, ErrorMessage } from '../UtilityComponents';
-
+// Al inicio del archivo, con los otros imports
+import DeleteAccountModal from '../profile/DeleteAccountModal'; 
 /**
  * ArtisanDashboard: Componente principal del panel de artesano
  * 
@@ -39,6 +40,9 @@ const ArtisanDashboard = ({ currentUser, profile }) => {
 
   // useState: Estado de operaciones (eliminar, etc)
   const [operationLoading, setOperationLoading] = useState(false);
+   
+  const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false);
+
 
   /**
    * useEffect: Cargar productos al montar el componente
@@ -179,6 +183,9 @@ const ArtisanDashboard = ({ currentUser, profile }) => {
     return { text: `In Stock (${stock})`, className: 'in-stock' };
   };
 
+  
+
+
   // Calcular estadísticas
   const stats = {
     total: products.length,
@@ -215,8 +222,15 @@ const ArtisanDashboard = ({ currentUser, profile }) => {
         >
           ➕ Add New Product
         </button>
+         <button 
+          onClick={openDeleteAccountModal}
+          className="btn-delete-account"
+          disabled={operationLoading}
+        >
+          🗑️ Delete My Account
+        </button>
       </div>
-
+       <DirectUploadTest currentUser={currentUser} />
       {/* Tarjetas de Estadísticas */}
       <div className="stats-grid">
         <div className="stat-card">
@@ -334,7 +348,12 @@ const ArtisanDashboard = ({ currentUser, profile }) => {
         existingProduct={selectedProduct}
         onProductSaved={handleProductSaved}
       />
-
+      <DeleteAccountModal
+        isOpen={isDeleteAccountModalOpen}
+        onClose={closeDeleteAccountModal}
+        currentUser={currentUser}
+        onAccountDeleted={handleAccountDeleted}
+      />
       {/* Estilos CSS */}
       <style jsx>{`
         .artisan-dashboard {
@@ -618,6 +637,29 @@ const ArtisanDashboard = ({ currentUser, profile }) => {
           .product-actions {
             flex-direction: row;
           }
+          .btn-delete-account {
+          background: transparent;
+          color: var(--color-error);
+          border: 2px solid var(--color-error);
+          padding: var(--spacing-sm) var(--spacing-md);
+          border-radius: var(--radius-md);
+          font-family: var(--font-body);
+          font-weight: var(--font-medium);
+          font-size: var(--text-sm);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+        }
+
+        .btn-delete-account:hover:not(:disabled) {
+          background: var(--color-error);
+          color: var(--color-white);
+        }
+
+        .btn-delete-account:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
         }
       `}</style>
     </div>

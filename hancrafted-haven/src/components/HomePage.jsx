@@ -11,6 +11,9 @@ import { getCurrentUser, signOut } from '../services/authService';
 import ProfileEditModal from './profile/ProfileEditModal';
 import ArtisanApplicationModal from './profile/ArtisanApplicationModal';
 import ArtisanDashboard from './artisan/ArtisanDashboard'; // ✅ Dashboard de artesano
+import SellerProfiles from './seller/SellerProfiles';
+import Footer from './ui/Footer';
+
 
 const HomePage = () => {
   // ============================================
@@ -43,7 +46,9 @@ const HomePage = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isArtisanModalOpen, setIsArtisanModalOpen] = useState(false);
   
-  // ✅ Estado para mostrar/ocultar dashboard de artesano
+  const [showSellerProfiles, setShowSellerProfiles] = useState(false);
+
+  // Estado para mostrar/ocultar dashboard de artesano
   const [showDashboard, setShowDashboard] = useState(false);
 
   // ============================================
@@ -92,6 +97,7 @@ const HomePage = () => {
         setUser(null);
         setProfile(null);
         setShowDashboard(false); // ✅ Cerrar dashboard al hacer logout
+        setShowSellerProfiles(false);
         console.log('Logout successful');
       } else {
         console.error('Logout failed:', result.error);
@@ -225,6 +231,7 @@ const HomePage = () => {
               {authLoading ? 'Logging out...' : 'Logout'}
             </button>
           </div>
+          {/* {process.env.NODE_ENV === 'development' && <SimpleStorageTester />} */}
         </div>
 
         {/* Dashboard del Artesano */}
@@ -392,36 +399,58 @@ const HomePage = () => {
               <span className="stat-label">Avg Price</span>
             </div>
           </div>
+          <div className="seller-profiles-toggle" style={{ marginTop: '40px' }}>
+            <button 
+              onClick={() => setShowSellerProfiles(!showSellerProfiles)}
+              className="btn btn-primary btn-large"
+            >
+              {showSellerProfiles ? '← Back to Products' : '🏪 Meet Our Artisans'}
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Sección principal de productos */}
+{/* Sección principal de productos */}
       <main className="main-content">
         <div className="container">
-          {/* FilterBar: Componente para filtrar productos */}
-          <FilterBar
-            categories={categories}
-            filters={filters}
-            onFilterChange={updateFilter}
-            onClearFilters={clearFilters}
-            productCount={stats.filteredCount}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-          />
+          
+          {/* ✅ RENDERIZADO CONDICIONAL: Seller Profiles o Products ✅ */}
+          {showSellerProfiles ? (
+            // Mostrar perfiles de vendedores
+            <SellerProfiles currentUser={user} />
+          ) : (
+            // Mostrar productos (código existente)
+            <>
+              {/* FilterBar: Componente para filtrar productos */}
+              <FilterBar
+                categories={categories}
+                filters={filters}
+                onFilterChange={updateFilter}
+                onClearFilters={clearFilters}
+                productCount={stats.filteredCount}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+              />
 
-          {/* Contenido de productos - Renderizado condicional */}
-          <section className="products-section">
-            {loading ? (
-              <LoadingSpinner />
-            ) : products.length === 0 ? (
-              <NoProductsMessage filters={filters} onClearFilters={clearFilters} />
-            ) : (
-              <ProductGrid products={products} viewMode={viewMode} />
-            )}
-          </section>
+              {/* Contenido de productos - Renderizado condicional */}
+              <section className="products-section">
+                {loading ? (
+                  <LoadingSpinner />
+                ) : products.length === 0 ? (
+                  <NoProductsMessage filters={filters} onClearFilters={clearFilters} />
+                ) : (
+                  <ProductGrid products={products} viewMode={viewMode} />
+                )}
+              </section>
+            </>
+          )}
+          
+
         </div>
+        
       </main>
-
+      <Footer />
       {/* ============================================ */}
       {/* 8. MODALES */}
       {/* ============================================ */}
@@ -594,7 +623,6 @@ const HomePage = () => {
         .products-section {
           margin-top: 30px;
         }
-
         @media (max-width: 768px) {
           .hero-nav {
             flex-direction: column;

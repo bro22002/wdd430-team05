@@ -366,12 +366,13 @@ export const uploadProductImage = async (artisanId, imageFile) => {
     // Subir archivo a Supabase Storage
     // - from('products'): bucket de productos
     // - upload(): sube el archivo
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('products')
-      .upload(filePath, imageFile, {
-        cacheControl: '3600',  // Cache por 1 hora
-        upsert: false  // No sobrescribir si existe
-      });
+   const { data: uploadData, error: uploadError } = await supabase.storage
+    .from('products')
+    .upload(filePath, imageFile, {
+      contentType: imageFile.type,  // ✅ ESTO ES LO QUE FALTABA
+      cacheControl: '3600',
+      upsert: false
+  });
 
     if (uploadError) {
       throw uploadError;

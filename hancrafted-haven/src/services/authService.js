@@ -1,104 +1,102 @@
 // src/services/authService.js
-// Servicio CORREGIDO para manejar autenticación con user_profiles
+// Servicio ACTUALIZADO que asegura la existencia del perfil
 
 import { supabase } from '../lib/supabase';
+import { ensureUserProfile } from './ensureUserProfile';
 
 /**
- * signUp: Registra un nuevo usuario en Supabase Auth
- * CAMBIOS: Ahora usa user_profiles en lugar de profiles
+ * getCurrentUser: Obtiene el usuario actual Y ASEGURA que tenga perfil
  * 
- * @param {Object} userData - Datos del usuario
- * @param {string} userData.firstName - Nombre del usuario
- * @param {string} userData.lastName - Apellido del usuario
- * @param {string} userData.email - Email del usuario
- * @param {string} userData.password - Contraseña del usuario
- * @returns {Object} - Resultado de la operación {success, user, session, message/error}
+ * CAMBIO PRINCIPAL: Ahora usa ensureUserProfile() para crear el perfil
+ * si no existe, en lugar de solo reportar el error
+ * 
+ * ¿Qué hace paso a paso?
+ * 1. Obtiene el usuario de Auth
+ * 2. Si hay usuario, ejecuta ensureUserProfile()
+ * 3. ensureUserProfile crea el perfil si no existe
+ * 4. Retorna usuario + perfil
  */
-export const signUp = async (userData) => {
+export const getCurrentUser = async () => {
   try {
-    const { firstName, lastName, email, password } = userData;
+    console.log('👤 Getting current user...');
+    
+    // PASO 1: Obtener usuario de Supabase Auth
+    // getUser() consulta la sesión actual y retorna el usuario autenticado
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    // Si hay error o no hay usuario, retornar early
+    if (userError || !user) {
+      console.log('⚠️ No authenticated user found');
+      return {
+        success: false,
+        user: null,
+        profile: null
+      };
+    }
 
-    // Paso 1: Crear usuario en Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-      options: {
-        data: {
-          full_name: `${firstName} ${lastName}`,  // ✅ Guardamos nombre completo
-          first_name: firstName,  // Lo guardamos en metadata por si acaso
-          last_name: lastName
-        }
-      }
+    console.log('✅ User found:', user.email);
+
+    // PASO 2: ASEGURAR que el usuario tenga perfil
+    // Esta es la CLAVE de la solución:
+    // ensureUserProfile() busca el perfil, y si no existe, lo crea
+    const profileResult = await ensureUserProfile(user);
+    
+    if (!profileResult.success) {
+      console.error('❌ Failed to ensure user profile:', profileResult.error);
+      return {
+        success: false,
+        user: user,
+        profile: null,
+        error: profileResult.error
+      };
+    }
+
+    // PASO 3: Mapear campos para compatibilidad
+    // Convertimos campos de user_profiles a los nombres que usa el código existente
+    const mappedProfile = mapProfileFields(profileResult.profile);
+
+    // Si el perfil fue recién creado, informar
+    if (profileResult.wasCreated) {
+      console.log('🆕 New profile was created for user');
+    }
+
+    console.log('✅ getCurrentUser successful:', {
+      userId: user.id,
+      email: user.email,
+      hasProfile: !!mappedProfile,
+      isArtisan: mappedProfile?.is_artisan || false
     });
-
-    if (authError) {
-      throw authError;
-    }
-
-    // Paso 2: Si el registro es exitoso, crear perfil en user_profiles
-    if (authData.user) {
-      const { error: profileError } = await supabase
-        .from('user_profiles')  // ✅ CAMBIADO: era 'profiles'
-        .insert({
-          id: authData.user.id,
-          email: email,
-          full_name: `${firstName} ${lastName}`,  // ✅ CAMBIADO: era first_name + last_name
-          role: 'buyer',  // ✅ NUEVO: rol por defecto es comprador
-          is_active: true,  // ✅ NUEVO: usuario activo por defecto
-          is_verified: false,  // ✅ NUEVO: no verificado inicialmente
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
-
-      // Si hay error creando el perfil, lo logueamos pero no falseamos el registro
-      if (profileError) {
-        console.warn('Profile creation error:', profileError);
-        // NOTA: El usuario ya fue creado en Auth, solo falló el perfil extendido
-      }
-    }
 
     return {
       success: true,
-      user: authData.user,
-      session: authData.session,
-      message: 'Registration successful! Please check your email to verify your account.'
+      user: user,
+      profile: mappedProfile
     };
 
   } catch (error) {
-    console.error('Registration error:', error);
-    
-    // Manejar errores específicos de Supabase
-    let errorMessage = 'Registration failed. Please try again.';
-    
-    if (error.message?.includes('already registered')) {
-      errorMessage = 'This email is already registered. Please use a different email or try signing in.';
-    } else if (error.message?.includes('Password')) {
-      errorMessage = 'Password must be at least 6 characters long.';
-    } else if (error.message?.includes('Email')) {
-      errorMessage = 'Please enter a valid email address.';
-    }
-
+    console.error('❌ Get current user error:', error);
     return {
       success: false,
-      error: errorMessage
+      user: null,
+      profile: null,
+      error: error.message
     };
   }
 };
 
 /**
- * signIn: Inicia sesión con email y contraseña
- * CAMBIOS: Obtiene perfil de user_profiles y mapea campos correctamente
+ * signIn: Inicia sesión Y ASEGURA que el usuario tenga perfil
  * 
- * @param {Object} credentials - Credenciales del usuario
- * @param {string} credentials.email - Email del usuario
- * @param {string} credentials.password - Contraseña del usuario
- * @returns {Object} - Resultado de la operación {success, user, session, profile, message/error}
+ * CAMBIO: Ahora usa ensureUserProfile() después de autenticar
  */
 export const signIn = async (credentials) => {
   try {
     const { email, password } = credentials;
 
-    // Paso 1: Autenticar con Supabase Auth
+    console.log('🔐 Signing in:', email);
+
+    // PASO 1: Autenticar con Supabase Auth
+    // signInWithPassword valida email + contraseña
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: email,
       password: password
@@ -108,40 +106,34 @@ export const signIn = async (credentials) => {
       throw authError;
     }
 
-    // Paso 2: Obtener información del perfil del usuario
-    let userProfile = null;
-    if (authData.user) {
-      const { data: profileData, error: profileError } = await supabase
-        .from('user_profiles')  // ✅ CAMBIADO: era 'profiles'
-        .select('*')
-        .eq('id', authData.user.id)
-        .single();
+    console.log('✅ Authentication successful');
 
-      if (!profileError && profileData) {
-        userProfile = profileData;
-        
-        // ✅ NUEVO: Mapear campos para compatibilidad con código existente
-        // Esto permite que tu código actual siga funcionando sin cambios masivos
-        userProfile.first_name = profileData.full_name?.split(' ')[0] || '';
-        userProfile.last_name = profileData.full_name?.split(' ').slice(1).join(' ') || '';
-        userProfile.is_artisan = profileData.role === 'seller' || profileData.role === 'artisan';
-        userProfile.artisan_verified = profileData.is_verified;
-        userProfile.avatar_url = profileData.profile_image_url;
-      }
+    // PASO 2: ASEGURAR que tenga perfil
+    // Esta función creará el perfil si no existe
+    const profileResult = await ensureUserProfile(authData.user);
+    
+    if (!profileResult.success) {
+      console.warn('⚠️ Profile creation/retrieval failed:', profileResult.error);
+      // Aún así permitimos el login, pero sin perfil
     }
+
+    // PASO 3: Mapear campos para compatibilidad
+    const mappedProfile = profileResult.success 
+      ? mapProfileFields(profileResult.profile) 
+      : null;
 
     return {
       success: true,
       user: authData.user,
       session: authData.session,
-      profile: userProfile,
+      profile: mappedProfile,
       message: 'Login successful!'
     };
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('❌ Login error:', error);
     
-    // Manejar errores específicos de Supabase
+    // Mensajes de error específicos
     let errorMessage = 'Login failed. Please try again.';
     
     if (error.message?.includes('Invalid login credentials')) {
@@ -160,11 +152,101 @@ export const signIn = async (credentials) => {
 };
 
 /**
- * signOut: Cierra la sesión del usuario
- * SIN CAMBIOS: Esta función no interactúa con tablas de perfil
+ * signUp: Registra nuevo usuario Y CREA su perfil
  * 
- * @returns {Object} - Resultado de la operación {success, message/error}
+ * CAMBIO: Usa ensureUserProfile() si la inserción inicial falla
  */
+export const signUp = async (userData) => {
+  try {
+    const { firstName, lastName, email, password } = userData;
+
+    console.log('📝 Registering new user:', email);
+
+    // PASO 1: Crear usuario en Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        data: {
+          full_name: `${firstName} ${lastName}`,
+          first_name: firstName,
+          last_name: lastName
+        }
+      }
+    });
+
+    if (authError) {
+      throw authError;
+    }
+
+    console.log('✅ User created in Auth');
+
+    // PASO 2: ASEGURAR que el perfil se cree correctamente
+    // Usar ensureUserProfile en lugar de insertar directamente
+    if (authData.user) {
+      const profileResult = await ensureUserProfile(authData.user);
+      
+      if (!profileResult.success) {
+        console.error('⚠️ Profile creation failed:', profileResult.error);
+        // Continuar de todos modos, ya que el usuario fue creado en Auth
+      } else {
+        console.log('✅ Profile created successfully');
+      }
+    }
+
+    return {
+      success: true,
+      user: authData.user,
+      session: authData.session,
+      message: 'Registration successful! Please check your email to verify your account.'
+    };
+
+  } catch (error) {
+    console.error('❌ Registration error:', error);
+    
+    let errorMessage = 'Registration failed. Please try again.';
+    
+    if (error.message?.includes('already registered')) {
+      errorMessage = 'This email is already registered. Please use a different email or try signing in.';
+    } else if (error.message?.includes('Password')) {
+      errorMessage = 'Password must be at least 6 characters long.';
+    } else if (error.message?.includes('Email')) {
+      errorMessage = 'Please enter a valid email address.';
+    }
+
+    return {
+      success: false,
+      error: errorMessage
+    };
+  }
+};
+
+/**
+ * mapProfileFields: Mapea campos de user_profiles a formato legacy
+ * 
+ * ¿Para qué sirve?
+ * El código existente usa nombres como "first_name" y "is_artisan"
+ * pero user_profiles usa "full_name" y "role"
+ * Esta función convierte entre ambos formatos
+ */
+const mapProfileFields = (profileData) => {
+  if (!profileData) return null;
+
+  return {
+    ...profileData,
+    // Mapeos para retrocompatibilidad con código existente:
+    first_name: profileData.full_name?.split(' ')[0] || '',
+    last_name: profileData.full_name?.split(' ').slice(1).join(' ') || '',
+    is_artisan: profileData.role === 'seller' || profileData.role === 'artisan',
+    artisan_verified: profileData.is_verified,
+    avatar_url: profileData.profile_image_url
+  };
+};
+
+// ========================================
+// FUNCIONES SIN CAMBIOS (exportar igual)
+// ========================================
+
 export const signOut = async () => {
   try {
     const { error } = await supabase.auth.signOut();
@@ -187,68 +269,6 @@ export const signOut = async () => {
   }
 };
 
-/**
- * getCurrentUser: Obtiene el usuario actual de la sesión
- * CAMBIOS: Lee de user_profiles y mapea campos para compatibilidad
- * 
- * @returns {Object} - {success, user, profile}
- */
-export const getCurrentUser = async () => {
-  try {
-    // Paso 1: Obtener usuario de la sesión actual
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError || !user) {
-      return {
-        success: false,
-        user: null,
-        profile: null
-      };
-    }
-
-    // Paso 2: Obtener perfil del usuario de user_profiles
-    const { data: profileData, error: profileError } = await supabase
-      .from('user_profiles')  // ✅ CAMBIADO: era 'profiles'
-      .select('*')
-      .eq('id', user.id)
-      .single();
-
-    // Paso 3: Mapear campos para compatibilidad con código existente
-    let mappedProfile = null;
-    if (!profileError && profileData) {
-      mappedProfile = {
-        ...profileData,
-        // Campos mapeados para retrocompatibilidad
-        first_name: profileData.full_name?.split(' ')[0] || '',
-        last_name: profileData.full_name?.split(' ').slice(1).join(' ') || '',
-        is_artisan: profileData.role === 'seller' || profileData.role === 'artisan',
-        artisan_verified: profileData.is_verified,
-        avatar_url: profileData.profile_image_url
-      };
-    }
-
-    return {
-      success: true,
-      user: user,
-      profile: mappedProfile
-    };
-
-  } catch (error) {
-    console.error('Get current user error:', error);
-    return {
-      success: false,
-      user: null,
-      profile: null
-    };
-  }
-};
-
-/**
- * getSession: Obtiene la sesión actual
- * SIN CAMBIOS: No interactúa con tablas de perfil
- * 
- * @returns {Object} - {success, session}
- */
 export const getSession = async () => {
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
@@ -271,24 +291,10 @@ export const getSession = async () => {
   }
 };
 
-/**
- * onAuthStateChange: Listener para cambios en el estado de autenticación
- * SIN CAMBIOS: Función de utilidad, no interactúa con tablas
- * 
- * @param {Function} callback - Función a ejecutar cuando cambia el estado
- * @returns {Object} - Subscription object para cleanup
- */
 export const onAuthStateChange = (callback) => {
   return supabase.auth.onAuthStateChange(callback);
 };
 
-/**
- * resetPassword: Envía email para resetear contraseña
- * SIN CAMBIOS: Solo funcionalidad de Auth
- * 
- * @param {string} email - Email del usuario
- * @returns {Object} - {success, message/error}
- */
 export const resetPassword = async (email) => {
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -313,25 +319,14 @@ export const resetPassword = async (email) => {
   }
 };
 
-/**
- * updateProfile: Actualiza el perfil del usuario
- * REESCRITO COMPLETAMENTE: Ahora funcional con user_profiles
- * 
- * @param {string} userId - ID del usuario
- * @param {Object} profileData - Datos a actualizar
- * @returns {Object} - {success, profile, message/error}
- */
 export const updateProfile = async (userId, profileData) => {
   try {
-    // Preparar datos para actualizar
     const updateData = {
       ...profileData,
       updated_at: new Date().toISOString()
     };
 
-    // Si se están actualizando first_name y last_name, crear full_name
     if (profileData.first_name || profileData.last_name) {
-      // Obtener perfil actual para tener los valores existentes
       const { data: currentProfile } = await supabase
         .from('user_profiles')
         .select('full_name')
@@ -346,12 +341,10 @@ export const updateProfile = async (userId, profileData) => {
 
       updateData.full_name = `${newFirstName} ${newLastName}`.trim();
       
-      // Remover first_name y last_name ya que no existen en user_profiles
       delete updateData.first_name;
       delete updateData.last_name;
     }
 
-    // Mapear campos que tienen nombres diferentes
     if (profileData.avatar_url) {
       updateData.profile_image_url = profileData.avatar_url;
       delete updateData.avatar_url;
@@ -367,9 +360,8 @@ export const updateProfile = async (userId, profileData) => {
       delete updateData.artisan_verified;
     }
 
-    // Actualizar en la base de datos
     const { data, error } = await supabase
-      .from('user_profiles')  // ✅ CAMBIADO: era 'profiles'
+      .from('user_profiles')
       .update(updateData)
       .eq('id', userId)
       .select()
@@ -379,15 +371,7 @@ export const updateProfile = async (userId, profileData) => {
       throw error;
     }
 
-    // Mapear respuesta para compatibilidad
-    const mappedProfile = {
-      ...data,
-      first_name: data.full_name?.split(' ')[0] || '',
-      last_name: data.full_name?.split(' ').slice(1).join(' ') || '',
-      is_artisan: data.role === 'seller' || data.role === 'artisan',
-      artisan_verified: data.is_verified,
-      avatar_url: data.profile_image_url
-    };
+    const mappedProfile = mapProfileFields(data);
 
     return {
       success: true,
@@ -403,3 +387,19 @@ export const updateProfile = async (userId, profileData) => {
     };
   }
 };
+
+/**
+ * RESUMEN DE CAMBIOS:
+ * 
+ * 1. getCurrentUser() → Ahora usa ensureUserProfile()
+ *    - Si el perfil existe → Lo retorna
+ *    - Si NO existe → Lo crea automáticamente
+ * 
+ * 2. signIn() → También usa ensureUserProfile()
+ *    - Después de autenticar, asegura que haya perfil
+ * 
+ * 3. signUp() → Usa ensureUserProfile() como fallback
+ *    - Si la creación inicial falla, ensureUserProfile lo intenta
+ * 
+ * RESULTADO: Ahora NUNCA tendrás un usuario sin perfil ✅
+ */

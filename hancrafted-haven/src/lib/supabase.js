@@ -1,9 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Only create client if we have valid credentials
+let supabase = null;
+if (supabaseUrl !== 'https://placeholder.supabase.co' && supabaseAnonKey !== 'placeholder-key') {
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
+} else {
+  console.warn('⚠️  Using placeholder Supabase credentials. Please update .env.local with your actual credentials.');
+}
+
+export { supabase };
 
 // handleSupabaseError: Maneja errores de Supabase de forma consistente
 export const handleSupabaseError = (error) => {

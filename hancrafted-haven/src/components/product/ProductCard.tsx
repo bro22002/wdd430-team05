@@ -1,19 +1,46 @@
 import React from 'react';
+import { Product } from '../../types/product';
 
-const ProductCard = ({product, viewMode = 'grid' }) => {
+interface ProductCardProps {
+  product: Product;
+  viewMode?: 'grid' | 'list';
+  onFavoriteToggle?: (productId: string, isFavorite: boolean) => void;
+  onProductClick?: (product: Product) => void;
+}
+
+const ProductCard: React.FC<ProductCardProps> = ({
+  product, 
+  viewMode = 'grid', 
+  onFavoriteToggle,
+  onProductClick 
+}) => {
   // handleAddToCart: Función para agregar producto al carrito
   const handleAddToCart = () => {
     console.log('Agregando al carrito:', product.title);
     // Aquí iría la lógica real de agregar al carrito
   };
 
+  // Manejador de click en producto
+  const handleClick = () => {
+    if (onProductClick) {
+      onProductClick(product);
+    }
+  };
+
+  // Manejador de favoritos (placeholder)
+  const handleFavoriteClick = () => {
+    if (onFavoriteToggle) {
+      onFavoriteToggle(product.id, true); // Toggle logic would go here
+    }
+  };
+
   // formatPrice: Formatea el precio con símbolo de moneda
-  const formatPrice = (price) => {
+  const formatPrice = (price: number) => {
     return `$${price.toFixed(2)}`;
   };
 
   // formatDate: Formatea la fecha de creación
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
       year: 'numeric', 
@@ -23,7 +50,7 @@ const ProductCard = ({product, viewMode = 'grid' }) => {
   };
 
   // renderRating: Renderiza las estrellas basado en el rating numérico
-  const renderRating = (rating) => {
+  const renderRating = (rating: number) => {
     const stars = [];
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 !== 0;
@@ -45,7 +72,7 @@ const ProductCard = ({product, viewMode = 'grid' }) => {
   };
 
   // getStockStatus: Determina el estado del stock
-  const getStockStatus = (stock) => {
+  const getStockStatus = (stock: number) => {
     if (stock === 0) return { text: 'Out of Stock', className: 'out-of-stock' };
     if (stock <= 5) return { text: `Only ${stock} left`, className: 'low-stock' };
     return { text: 'In Stock', className: 'in-stock' };
@@ -54,13 +81,13 @@ const ProductCard = ({product, viewMode = 'grid' }) => {
   const stockStatus = getStockStatus(product.stock);
 
   return (
-    <div className={`productCard ${viewMode}`}>
+    <div className={`productCard ${viewMode}`} onClick={handleClick}>
       <div className="product-image">
         <img 
           src={product.image_url} 
           alt={product.title}
           onError={(e) => {
-            e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgMTEwQzEzOS4yIDExMCAxMzAuNSAxMTguNyAxMzAuNSAxMjkuNVMxMzkuMiAxNDkgMTUwIDE0OUMxNjAuOCAxNDkgMTY5LjUgMTQwLjMgMTY5LjUgMTI5LjVTMTYwLjggMTEwIDE1MCAxMTBaIiBmaWxsPSIjOUNBM0FGIi8+CjxwYXRoIGQ9Ik0xODAuNSAxODBIODkuNUw5OS41IDE1MEwxNzAuNSAxNTBMMTgwLjUgMTgwWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K';
+            (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgMTEwQzEzOS4yIDExMCAxMzAuNSAxMTguNyAxMzAuNSAxMjkuNVMxMzkuMiAxNDkgMTUwIDE0OUMxNjAuOCAxNDkgMTY5LjUgMTQwLjMgMTY5LjUgMTI5LjVTMTYwLjggMTEwIDE1MCAxMTBaIiBmaWxsPSIjOUNBM0FGIi8+CjxwYXRoIGQ9Ik0xODAuNSAxODBIODkuNUw5OS41IDE1MEwxNzAuNSAxNTBMMTgwLjUgMTgwWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K';
           }}
         />
         

@@ -12,8 +12,6 @@ export interface Product {
   stock: number;
   created_at: string;
 }
-  updatedAt: Date;
-}
 
 // Tipo para el estado de favoritos
 export interface FavoriteState {

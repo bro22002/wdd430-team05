@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase, handleSupabaseError, handleSupabaseSuccess } from '../lib/supabase';
+import { getAllProducts } from '../utils/database';
 
 export const useProducts = () => {
   // Estados para manejar los productos y la interfaz
@@ -16,35 +16,16 @@ export const useProducts = () => {
     searchTerm: ''
   });
 
-  // fetchProducts: Obtiene todos los productos de la base de datos
+  // fetchProducts: Obtiene todos los productos usando la utilidad de database
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Consulta a Supabase usando los campos reales de tu BD
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          id,
-          title,
-          description,
-          price,
-          category,
-          rating,
-          stock,
-          image_url,
-          created_at
-        `)
-        .order('created_at', { ascending: false });
+      // Usar la utilidad de database que maneja Supabase y fallback a mock data
+      const data = await getAllProducts();
 
-      if (error) {
-        console.error('Supabase error:', error);
-        setError('Error loading products from database');
-        return;
-      }
-
-      // Si la consulta es exitosa, actualizamos los estados
+      // Si tenemos datos, actualizamos los estados
       setAllProducts(data || []);
       
       // Extraemos categorías únicas de los productos
@@ -52,7 +33,7 @@ export const useProducts = () => {
       setCategories(uniqueCategories);
 
     } catch (error) {
-      setError('Error connecting to database');
+      setError('Error loading products');
       console.error('Error fetching products:', error);
     } finally {
       setLoading(false);

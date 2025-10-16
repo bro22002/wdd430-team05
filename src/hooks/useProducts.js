@@ -39,7 +39,7 @@ export const useProducts = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.log('Supabase error:', error.message || error);
         setError('Error loading products from database');
         return;
       }
@@ -53,7 +53,7 @@ export const useProducts = () => {
 
     } catch (error) {
       setError('Error connecting to database');
-      console.error('Error fetching products:', error);
+      console.log('Error fetching products:', error.message || error);
     } finally {
       setLoading(false);
     }

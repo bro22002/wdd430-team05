@@ -42,7 +42,7 @@ export const getCurrentUser = async () => {
     const profileResult = await ensureUserProfile(user);
     
     if (!profileResult.success) {
-      console.error('❌ Failed to ensure user profile:', profileResult.error);
+      console.log('❌ Failed to ensure user profile:', profileResult.error);
       return {
         success: false,
         user: user,
@@ -74,7 +74,7 @@ export const getCurrentUser = async () => {
     };
 
   } catch (error) {
-    console.error('❌ Get current user error:', error);
+    console.log('❌ Get current user error:', error.message || error);
     return {
       success: false,
       user: null,
@@ -131,7 +131,7 @@ export const signIn = async (credentials) => {
     };
 
   } catch (error) {
-    console.error('❌ Login error:', error);
+    console.log('❌ Login error:', error.message || error);
     
     // Mensajes de error específicos
     let errorMessage = 'Login failed. Please try again.';
@@ -187,7 +187,7 @@ export const signUp = async (userData) => {
       const profileResult = await ensureUserProfile(authData.user);
       
       if (!profileResult.success) {
-        console.error('⚠️ Profile creation failed:', profileResult.error);
+        console.log('⚠️ Profile creation failed:', profileResult.error);
         // Continuar de todos modos, ya que el usuario fue creado en Auth
       } else {
         console.log('✅ Profile created successfully');
@@ -202,7 +202,7 @@ export const signUp = async (userData) => {
     };
 
   } catch (error) {
-    console.error('❌ Registration error:', error);
+    console.log('❌ Registration error:', error.message || error);
     
     let errorMessage = 'Registration failed. Please try again.';
     
@@ -261,7 +261,7 @@ export const signOut = async () => {
     };
 
   } catch (error) {
-    console.error('Logout error:', error);
+    console.log('Logout error:', error.message || error);
     return {
       success: false,
       error: 'Failed to logout. Please try again.'
@@ -283,7 +283,7 @@ export const getSession = async () => {
     };
 
   } catch (error) {
-    console.error('Get session error:', error);
+    console.log('Get session error:', error.message || error);
     return {
       success: false,
       session: null
@@ -311,7 +311,7 @@ export const resetPassword = async (email) => {
     };
 
   } catch (error) {
-    console.error('Reset password error:', error);
+    console.log('Reset password error:', error.message || error);
     return {
       success: false,
       error: 'Failed to send reset email. Please try again.'
@@ -380,7 +380,7 @@ export const updateProfile = async (userId, profileData) => {
     };
 
   } catch (error) {
-    console.error('Update profile error:', error);
+    console.log('Update profile error:', error.message || error);
     return {
       success: false,
       error: 'Failed to update profile. Please try again.'

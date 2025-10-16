@@ -1,8 +1,12 @@
 // scripts/verifyFinal.js
-require('dotenv').config();
-const { createClient } = require('@supabase/supabase-js');
-const fs = require('fs');
-const path = require('path');
+import 'dotenv/config';
+import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

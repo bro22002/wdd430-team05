@@ -27,12 +27,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
-  // Manejador de favoritos (placeholder)
-  const handleFavoriteClick = () => {
-    if (onFavoriteToggle) {
-      onFavoriteToggle(product.id, true); // Toggle logic would go here
-    }
-  };
 
   // formatPrice: Formatea el precio con símbolo de moneda
   const formatPrice = (price: number) => {

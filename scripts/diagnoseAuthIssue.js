@@ -1,8 +1,8 @@
 // scripts/diagnoseAuthIssue.js
 // Script para diagnosticar problemas de autenticación y conexión con Supabase
 
-require('dotenv').config({ path: '.env.local' });
-const { createClient } = require('@supabase/supabase-js');
+import 'dotenv/config';
+import { createClient } from '@supabase/supabase-js';
 
 console.log('🔍 DIAGNÓSTICO DE AUTENTICACIÓN Y CONEXIÓN\n');
 console.log('═══════════════════════════════════════════════════\n');
@@ -12,7 +12,7 @@ function isValidUrl(string) {
   try {
     new URL(string);
     return true;
-  } catch (_) {
+  } catch {
     return false;
   }
 }
@@ -73,7 +73,7 @@ async function diagnoseAuth() {
   console.log('3️⃣ Verificando conexión a la base de datos...\n');
   
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('products')
       .select('count')
       .limit(1);

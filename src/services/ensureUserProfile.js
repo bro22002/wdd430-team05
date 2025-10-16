@@ -103,7 +103,7 @@ export const ensureUserProfile = async (user) => {
     throw new Error('Unexpected state: no profile and no error');
 
   } catch (error) {
-    console.error('❌ Error en ensureUserProfile:', error);
+    console.log('❌ Error en ensureUserProfile:', error.message || error);
     
     // Mensajes de error específicos según el tipo
     let errorMessage = 'Failed to ensure user profile';

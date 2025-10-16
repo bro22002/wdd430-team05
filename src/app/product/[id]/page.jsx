@@ -117,7 +117,7 @@ const ProductDetailPage = () => {
       console.log('✅ Product data loaded:', productData);
 
     } catch (err) {
-      console.error('❌ Error loading product:', err);
+      console.log('❌ Error loading product:', err.message || err);
       setError(err.message || 'Failed to load product details');
     } finally {
       setLoading(false);

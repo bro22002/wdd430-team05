@@ -1,7 +1,7 @@
 // generateProducts.js
 // Este script genera productos de muestra para la base de datos de Handcrafted Haven
-require('dotenv').config();
-const { createClient } = require('@supabase/supabase-js');
+import 'dotenv/config';
+import { createClient } from '@supabase/supabase-js';
 
 // Configuración de Supabase
 // Estas variables deben coincidir con las de tu archivo .env
@@ -181,7 +181,7 @@ async function generateProducts() {
     // Parámetros: 
     // - tabla: nombre de la tabla donde insertar ('products')
     // - datos: array de objetos con los productos a insertar
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('products')
       .insert(sampleProducts);
 
@@ -206,7 +206,7 @@ async function generateProducts() {
 // Función para verificar la conexión a Supabase
 async function testConnection() {
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('products')
       .select('count')
       .limit(1);
@@ -243,8 +243,8 @@ async function main() {
 }
 
 // Ejecutar solo si este archivo se ejecuta directamente
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
 
-module.exports = { generateProducts, sampleProducts };
+export { generateProducts, sampleProducts };

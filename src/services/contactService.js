@@ -217,16 +217,14 @@ export const markMessageAsRead = async (messageId, sellerId) => {
 
     // Actualizar el mensaje
     // eq('seller_id', sellerId): asegura que solo el vendedor pueda marcar sus mensajes
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('contact_messages')
       .update({ 
         is_read: true,
         read_at: new Date().toISOString()
       })
       .eq('id', messageId)
-      .eq('seller_id', sellerId)  // Verificación de seguridad
-      .select()
-      .single();
+      .eq('seller_id', sellerId);  // Verificación de seguridad
 
     if (error) {
       throw error;

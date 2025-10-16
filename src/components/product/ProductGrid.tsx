@@ -58,21 +58,6 @@ export default function ProductGrid({
     loadProducts();
   }, [filters]);
   
-  /**
-   * Maneja el toggle de favoritos
-   * @param productId - ID del producto
-   * @param isFavorite - Nuevo estado de favorito
-   */
-  const handleFavoriteToggle = (productId: string, isFavorite: boolean) => {
-    console.log(`Product ${productId} favorite status: ${isFavorite}`);
-    
-    // Aquí iría la lógica para:
-    // 1. Actualizar en la base de datos
-    // 2. Actualizar estado global (Context/Redux)
-    // 3. Mostrar notificación al usuario
-    
-    // Por ahora solo lo logueamos
-  };
   
   /**
    * Maneja el click en un producto
@@ -195,8 +180,7 @@ export default function ProductGrid({
         <ProductCard
           key={product.id}
           product={product}
-          onFavoriteToggle={handleFavoriteToggle}
-          onProductClick={handleProductClick}
+          onViewDetails={handleProductClick}
         />
       ))}
     </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase, handleSupabaseError, handleSupabaseSuccess } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 
 export const useProducts = () => {
   // Estados para manejar los productos y la interfaz

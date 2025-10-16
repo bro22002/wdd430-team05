@@ -6,11 +6,12 @@
  * @param price - El precio numérico a formatear
  * @returns Precio formateado como string (ej: "$89.00")
  */
-export function formatPrice(price: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(price);
+export function formatPrice(price: number, options: {
+  currency?: string;
+  locale?: string;
+  showDecimals?: boolean;
+} = {}): string {
+  const {
     currency = 'USD',
     locale = 'en-US',
     showDecimals = true

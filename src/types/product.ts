@@ -11,8 +11,7 @@ export interface Product {
   rating: number;
   stock: number;
   created_at: string;
-}
-  updatedAt: Date;
+  updated_at?: Date;
 }
 
 // Tipo para el estado de favoritos

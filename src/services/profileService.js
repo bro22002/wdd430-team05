@@ -331,7 +331,7 @@ export const uploadProfileImage = async (userId, imageFile) => {
     const filePath = `avatars/${fileName}`;
 
     // Subir archivo a Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('profiles')  // Nombre del bucket (debes crearlo en Supabase)
       .upload(filePath, imageFile, {
         cacheControl: '3600',

@@ -34,9 +34,6 @@ export const AuthProvider = ({ children }) => {
 
   // useEffect: Configurar listener de cambios de autenticación
   useEffect(() => {
-    // Obtener sesión inicial
-    getInitialSession();
-
     // Configurar listener para cambios de estado
     const { data: { subscription } } = onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session);
@@ -53,14 +50,17 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     });
 
+    // Obtener sesión inicial
+    getInitialSession();
+
     // Cleanup: remover listener al desmontar
     return () => {
       subscription?.unsubscribe();
     };
-  }, []);
+  }, [getInitialSession]);
 
   // getInitialSession: Obtiene la sesión inicial al cargar la app
-  const getInitialSession = async () => {
+  const getInitialSession = useCallback(async () => {
     try {
       const sessionResult = await getSession();
       if (sessionResult.success && sessionResult.session) {
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // handleUserSession: Maneja cuando hay una sesión activa
   const handleUserSession = async (session) => {

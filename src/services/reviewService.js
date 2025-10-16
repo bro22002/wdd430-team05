@@ -201,7 +201,7 @@ export const updateProductAverageRating = async (productId) => {
     }
 
     // Paso 3: Actualizar el producto con el nuevo rating
-    const { data: updatedProduct, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from('products')
       .update({ 
         rating: newRating,

@@ -366,7 +366,7 @@ export const uploadProductImage = async (artisanId, imageFile) => {
     // Subir archivo a Supabase Storage
     // - from('products'): bucket de productos
     // - upload(): sube el archivo
-   const { data: uploadData, error: uploadError } = await supabase.storage
+   const { error: uploadError } = await supabase.storage
     .from('products')
     .upload(filePath, imageFile, {
       contentType: imageFile.type,  // ✅ ESTO ES LO QUE FALTABA

@@ -17,7 +17,7 @@ const sampleProducts = [
     description: "Beautiful glazed ceramic mug perfect for your morning coffee. Each piece is unique with slight variations in color and texture.",
     price: 24.99,
     category: "Pottery & Ceramics",
-    image_url: "/images/ceramic-mug.jpg",
+    image_url: "/images/ceramic-mug.png",
     rating: 4.7,
     stock: 15
   },
@@ -26,7 +26,7 @@ const sampleProducts = [
     description: "Set of 4 handcrafted dinner plates with rustic charm. Made from natural clay and fired to perfection.",
     price: 89.99,
     category: "Pottery & Ceramics",
-    image_url: "/images/clay-plates.jpg",
+    image_url: "/images/clay-plates.png",
     rating: 4.8,
     stock: 8
   },
@@ -37,7 +37,7 @@ const sampleProducts = [
     description: "Elegant pendant featuring a natural gemstone wrapped in sterling silver wire. Comes with adjustable cord.",
     price: 45.00,
     category: "Jewelry & Accessories",
-    image_url: "/images/silver-pendant.jpg",
+    image_url: "/images/silver-pendant.png",
     rating: 4.9,
     stock: 12
   },
@@ -46,7 +46,7 @@ const sampleProducts = [
     description: "Lightweight earrings carved from sustainable bamboo with intricate geometric patterns.",
     price: 18.50,
     category: "Jewelry & Accessories",
-    image_url: "/images/wooden-earrings.jpg",
+    image_url: "/images/wooden-earrings.png",
     rating: 4.6,
     stock: 25
   },
@@ -57,7 +57,7 @@ const sampleProducts = [
     description: "Original abstract artwork painted on canvas. Features vibrant colors and dynamic brushstrokes.",
     price: 150.00,
     category: "Art & Paintings",
-    image_url: "/images/abstract-painting.jpg",
+    image_url: "/images/abstract-painting.png",
     rating: 4.8,
     stock: 3
   },
@@ -66,7 +66,7 @@ const sampleProducts = [
     description: "High-quality print of an original watercolor landscape. Printed on archival paper.",
     price: 35.00,
     category: "Art & Paintings",
-    image_url: "/images/watercolor-print.jpg",
+    image_url: "/images/watercolor-print.png",
     rating: 4.5,
     stock: 20
   },
@@ -77,7 +77,7 @@ const sampleProducts = [
     description: "Cozy sweater hand-knitted from premium alpaca wool. Available in natural earth tones.",
     price: 125.00,
     category: "Textiles & Clothing",
-    image_url: "/images/alpaca-sweater.jpg",
+    image_url: "/images/alpaca-sweater.png",
     rating: 4.9,
     stock: 6
   },
@@ -86,7 +86,7 @@ const sampleProducts = [
     description: "Decorative cushion cover with traditional embroidery patterns. Made from organic cotton.",
     price: 28.00,
     category: "Textiles & Clothing",
-    image_url: "/images/embroidered-cushion.jpg",
+    image_url: "/images/embroidered-cushion.png",
     rating: 4.4,
     stock: 18
   },
@@ -97,7 +97,7 @@ const sampleProducts = [
     description: "Sustainable cutting board made from reclaimed hardwood. Each piece has unique grain patterns.",
     price: 42.00,
     category: "Woodwork",
-    image_url: "/images/cutting-board.jpg",
+    image_url: "/images/cutting-board.png",
     rating: 4.7,
     stock: 10
   },
@@ -106,7 +106,7 @@ const sampleProducts = [
     description: "Beautiful bowl carved from a single piece of olive wood. Perfect for serving salads or fruit.",
     price: 55.00,
     category: "Woodwork",
-    image_url: "/images/wooden-bowl.jpg",
+    image_url: "/images/wooden-bowl.png",
     rating: 4.8,
     stock: 7
   },
@@ -117,7 +117,7 @@ const sampleProducts = [
     description: "Colorful stained glass panel perfect for hanging in windows. Features geometric patterns.",
     price: 95.00,
     category: "Glass",
-    image_url: "/images/stained-glass.jpg",
+    image_url: "/images/stained-glass.png",
     rating: 4.6,
     stock: 5
   },
@@ -126,7 +126,7 @@ const sampleProducts = [
     description: "Set of 6 delicate glass ornaments, each with unique swirl patterns and colors.",
     price: 32.00,
     category: "Glass",
-    image_url: "/images/glass-ornaments.jpg",
+    image_url: "/images/glass-ornaments.png",
     rating: 4.5,
     stock: 15
   },
@@ -137,7 +137,7 @@ const sampleProducts = [
     description: "Premium leather wallet with hand-stitched edges. Features multiple card slots and bill compartment.",
     price: 68.00,
     category: "Leather Goods",
-    image_url: "/images/leather-wallet.jpg",
+    image_url: "/images/leather-wallet.png",
     rating: 4.9,
     stock: 12
   },
@@ -146,7 +146,7 @@ const sampleProducts = [
     description: "Beautiful leather-bound journal with handmade paper. Perfect for writing or sketching.",
     price: 45.00,
     category: "Leather Goods",
-    image_url: "/images/leather-journal.jpg",
+    image_url: "/images/leather-journal.png",
     rating: 4.7,
     stock: 9
   },
@@ -157,7 +157,7 @@ const sampleProducts = [
     description: "Set of 3 candle holders hand-forged from iron. Rustic design perfect for any home decor.",
     price: 38.00,
     category: "Metalwork",
-    image_url: "/images/iron-candles.jpg",
+    image_url: "/images/iron-candles.png",
     rating: 4.4,
     stock: 8
   },
@@ -166,7 +166,7 @@ const sampleProducts = [
     description: "Artistic sculpture crafted from copper wire. Modern design that catches light beautifully.",
     price: 75.00,
     category: "Metalwork",
-    image_url: "/images/copper-sculpture.jpg",
+    image_url: "/images/copper-sculpture.png",
     rating: 4.6,
     stock: 4
   }

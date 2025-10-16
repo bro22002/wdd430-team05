@@ -1,0 +1,6 @@
+<svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="300" height="300" fill="#F3F4F6"/>
+<path d="M150 110C139.2 110 130.5 118.7 130.5 129.5S139.2 149 150 149C160.8 149 169.5 140.3 169.5 129.5S160.8 110 150 110Z" fill="#9CA3AF"/>
+<path d="M180.5 180H89.5L99.5 150L170.5 150L180.5 180Z" fill="#9CA3AF"/>
+<text x="150" y="220" text-anchor="middle" fill="#6B7280" font-family="Arial, sans-serif" font-size="12">Product Image</text>
+</svg>

@@ -13,7 +13,7 @@ const sampleProducts = [
     description: "Beautiful glazed ceramic mug perfect for your morning coffee. Each piece is unique with slight variations in color and texture.",
     price: 24.99,
     category: "Pottery & Ceramics",
-    image_url: "/images/ceramic-mug.jpg",
+    image_url: "/images/ceramic-mug.png",
     rating: 4.7,
     stock: 15
   },
@@ -22,7 +22,7 @@ const sampleProducts = [
     description: "Set of 4 handcrafted dinner plates with rustic charm. Made from natural clay and fired to perfection.",
     price: 89.99,
     category: "Pottery & Ceramics",
-    image_url: "/images/clay-plates.jpg",
+    image_url: "/images/clay-plates.png",
     rating: 4.8,
     stock: 8
   },
@@ -31,7 +31,7 @@ const sampleProducts = [
     description: "Elegant pendant featuring a natural gemstone wrapped in sterling silver wire. Comes with adjustable cord.",
     price: 45.00,
     category: "Jewelry & Accessories",
-    image_url: "/images/silver-pendant.jpg",
+    image_url: "/images/silver-pendant.png",
     rating: 4.9,
     stock: 12
   },
@@ -40,7 +40,7 @@ const sampleProducts = [
     description: "Lightweight earrings carved from sustainable bamboo with intricate geometric patterns.",
     price: 18.50,
     category: "Jewelry & Accessories",
-    image_url: "/images/wooden-earrings.jpg",
+    image_url: "/images/wooden-earrings.png",
     rating: 4.6,
     stock: 25
   },
@@ -49,7 +49,7 @@ const sampleProducts = [
     description: "Original abstract artwork painted on canvas. Features vibrant colors and dynamic brushstrokes.",
     price: 150.00,
     category: "Art & Paintings",
-    image_url: "/images/abstract-painting.jpg",
+    image_url: "/images/abstract-painting.png",
     rating: 4.8,
     stock: 3
   },
@@ -58,7 +58,7 @@ const sampleProducts = [
     description: "Sustainable cutting board made from reclaimed hardwood. Each piece has unique grain patterns.",
     price: 42.00,
     category: "Woodwork",
-    image_url: "/images/cutting-board.jpg",
+    image_url: "/images/cutting-board.png",
     rating: 4.7,
     stock: 10
   }

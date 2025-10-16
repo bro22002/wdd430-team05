@@ -184,11 +184,11 @@ const ProductCard = ({
       {/* Sección de imagen del producto */}
       <div className="product-image">
         <img 
-          src={product.image_url || '/images/placeholder-product.jpg'} 
+          src={product.image_url || '/images/placeholder-product.svg'} 
           alt={product.title || 'Producto sin título'}
           onError={(e) => {
             // Imagen de fallback si no se puede cargar la imagen principal
-            e.target.src = '/images/placeholder-product.jpg';
+            e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgMTEwQzEzOS4yIDExMCAxMzAuNSAxMTguNyAxMzAuNSAxMjkuNVMxMzkuMiAxNDkgMTUwIDE0OUMxNjAuOCAxNDkgMTY5LjUgMTQwLjMgMTY5LjUgMTI5LjVTMTYwLjggMTEwIDE1MCAxMTBaIiBmaWxsPSIjOUNBM0FGIi8+CjxwYXRoIGQ9Ik0xODAuNSAxODBIODkuNUw5OS41IDE1MEwxNzAuNSAxNTBMMTgwLjUgMTgwWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K';
           }}
         />
         

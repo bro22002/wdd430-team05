@@ -1,4 +1,3 @@
-// src/components/artisan/ArtisanDashboard.jsx
 // Dashboard principal para que artesanos gestionen sus productos
 // Muestra lista de productos, permite agregar, editar y eliminar
 
@@ -6,8 +5,8 @@ import React, { useState, useEffect } from 'react';
 import { getArtisanProducts, deleteProduct } from '../../services/productService';
 import ProductFormModal from './ProductFormModal';
 import { LoadingSpinner, ErrorMessage } from '../UtilityComponents';
-// Al inicio del archivo, con los otros imports
-import DeleteAccountModal from '../profile/DeleteAccountModal'; 
+import DeleteAccountModal from '../profile/DeleteAccountModal';
+
 /**
  * ArtisanDashboard: Componente principal del panel de artesano
  * 
@@ -41,8 +40,8 @@ const ArtisanDashboard = ({ currentUser, profile }) => {
   // useState: Estado de operaciones (eliminar, etc)
   const [operationLoading, setOperationLoading] = useState(false);
    
+  // useState: Control del modal de eliminar cuenta
   const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false);
-
 
   /**
    * useEffect: Cargar productos al montar el componente
@@ -172,6 +171,36 @@ const ArtisanDashboard = ({ currentUser, profile }) => {
   };
 
   /**
+   * openDeleteAccountModal: Abre el modal de eliminar cuenta
+   */
+  const openDeleteAccountModal = () => {
+    setIsDeleteAccountModalOpen(true);
+  };
+
+  /**
+   * closeDeleteAccountModal: Cierra el modal de eliminar cuenta
+   */
+  const closeDeleteAccountModal = () => {
+    setIsDeleteAccountModalOpen(false);
+  };
+
+  /**
+   * handleAccountDeleted: Maneja cuando se elimina la cuenta
+   * Debería redirigir al usuario o cerrar sesión
+   */
+  const handleAccountDeleted = () => {
+    // El servicio deleteSellerAccount ya maneja el logout
+    // Solo necesitamos cerrar el modal ya que el usuario será redirigido
+    setIsDeleteAccountModalOpen(false);
+    alert('Your account has been deleted. You will be redirected shortly.');
+    
+    // Opcional: forzar recarga de la página
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 2000);
+  };
+
+  /**
    * getStockStatus: Determina el estado del stock y su estilo
    * 
    * @param {number} stock - Cantidad en stock
@@ -182,9 +211,6 @@ const ArtisanDashboard = ({ currentUser, profile }) => {
     if (stock <= 5) return { text: `Low Stock (${stock})`, className: 'low-stock' };
     return { text: `In Stock (${stock})`, className: 'in-stock' };
   };
-
-  
-
 
   // Calcular estadísticas
   const stats = {
@@ -215,22 +241,25 @@ const ArtisanDashboard = ({ currentUser, profile }) => {
           </p>
         </div>
         
-        <button 
-          onClick={handleAddProduct}
-          className="btn btn-primary"
-          disabled={operationLoading}
-        >
-          ➕ Add New Product
-        </button>
-         <button 
-          onClick={openDeleteAccountModal}
-          className="btn-delete-account"
-          disabled={operationLoading}
-        >
-          🗑️ Delete My Account
-        </button>
+        <div className="header-actions">
+          <button 
+            onClick={handleAddProduct}
+            className="btn btn-primary"
+            disabled={operationLoading}
+          >
+            ➕ Add New Product
+          </button>
+          
+          <button 
+            onClick={openDeleteAccountModal}
+            className="btn-delete-account"
+            disabled={operationLoading}
+          >
+            🗑️ Delete My Account
+          </button>
+        </div>
       </div>
-       <DirectUploadTest currentUser={currentUser} />
+
       {/* Tarjetas de Estadísticas */}
       <div className="stats-grid">
         <div className="stat-card">
@@ -348,12 +377,15 @@ const ArtisanDashboard = ({ currentUser, profile }) => {
         existingProduct={selectedProduct}
         onProductSaved={handleProductSaved}
       />
+
+      {/* Modal para Eliminar Cuenta */}
       <DeleteAccountModal
         isOpen={isDeleteAccountModalOpen}
         onClose={closeDeleteAccountModal}
         currentUser={currentUser}
         onAccountDeleted={handleAccountDeleted}
       />
+
       {/* Estilos CSS */}
       <style jsx>{`
         .artisan-dashboard {
@@ -373,6 +405,35 @@ const ArtisanDashboard = ({ currentUser, profile }) => {
 
         .header-content h1 {
           margin: 0 0 var(--spacing-sm) 0;
+        }
+
+        .header-actions {
+          display: flex;
+          gap: var(--spacing-md);
+        }
+
+        .btn-delete-account {
+          background: transparent;
+          color: var(--color-error);
+          border: 2px solid var(--color-error);
+          padding: var(--spacing-sm) var(--spacing-md);
+          border-radius: var(--radius-md);
+          font-family: var(--font-body);
+          font-weight: var(--font-medium);
+          font-size: var(--text-sm);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+        }
+
+        .btn-delete-account:hover:not(:disabled) {
+          background: var(--color-error);
+          color: var(--color-white);
+        }
+
+        .btn-delete-account:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
 
         .stats-grid {
@@ -624,6 +685,10 @@ const ArtisanDashboard = ({ currentUser, profile }) => {
             align-items: stretch;
           }
 
+          .header-actions {
+            flex-direction: column;
+          }
+
           .product-item {
             grid-template-columns: 1fr;
             gap: var(--spacing-md);
@@ -637,29 +702,6 @@ const ArtisanDashboard = ({ currentUser, profile }) => {
           .product-actions {
             flex-direction: row;
           }
-          .btn-delete-account {
-          background: transparent;
-          color: var(--color-error);
-          border: 2px solid var(--color-error);
-          padding: var(--spacing-sm) var(--spacing-md);
-          border-radius: var(--radius-md);
-          font-family: var(--font-body);
-          font-weight: var(--font-medium);
-          font-size: var(--text-sm);
-          cursor: pointer;
-          transition: all 0.2s ease;
-          white-space: nowrap;
-        }
-
-        .btn-delete-account:hover:not(:disabled) {
-          background: var(--color-error);
-          color: var(--color-white);
-        }
-
-        .btn-delete-account:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
         }
       `}</style>
     </div>
